@@ -1,7 +1,6 @@
-
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import PageTransition from "../components/PageTransition";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Rocket, Users, Lightbulb, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const About = () => {
@@ -9,63 +8,94 @@ const About = () => {
     <PageTransition>
       <div className="container mx-auto py-16 px-4">
         <div className="max-w-5xl mx-auto">
-          {/* Hero Section */}
-          <div className="flex flex-col-reverse md:flex-row gap-8 items-center mb-16">
-            <div className="md:w-1/2">
-              <h1 className="text-4xl font-bold mb-4 text-edvantage-blue">About Edvantage</h1>
-              <p className="text-lg leading-relaxed text-gray-700">
-                Edvantage simplifies the academic journey for tertiary students by providing an engaging and efficient 
-                platform that integrates time management, collaboration, and academic tools. The app is built to help 
-                students overcome challenges such as poor time management, disjointed academic planning, and a lack 
-                of centralized collaboration tools.
-              </p>
-            </div>
-            <div className="md:w-1/2">
-              <div className="rounded-xl overflow-hidden shadow-xl">
-                <AspectRatio ratio={16/9}>
-                  <img 
-                    src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d" 
-                    alt="Student using Edvantage app" 
-                    className="object-cover w-full h-full"
-                  />
-                </AspectRatio>
+          <div className="bg-gradient-to-br from-edvantage-light-blue/20 to-white rounded-3xl p-8 md:p-12 mb-16 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-8 items-center">
+              <div className="md:w-1/2">
+                <h1 className="text-4xl md:text-5xl font-bold mb-6 text-edvantage-blue">
+                  About <span className="text-edvantage-dark-blue">Edvantage</span>
+                </h1>
+                <p className="text-lg leading-relaxed text-gray-700">
+                  Edvantage simplifies the academic journey for tertiary students by providing an engaging and efficient 
+                  platform that integrates time management, collaboration, and academic tools. The app is built to help 
+                  students overcome challenges such as poor time management, disjointed academic planning, and a lack 
+                  of centralized collaboration tools.
+                </p>
+              </div>
+              <div className="md:w-1/2">
+                <div className="rounded-xl overflow-hidden shadow-lg transform hover:scale-105 transition-transform duration-300">
+                  <AspectRatio ratio={16/9}>
+                    <img 
+                      src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d" 
+                      alt="Student using Edvantage app" 
+                      className="object-cover w-full h-full"
+                    />
+                  </AspectRatio>
+                </div>
               </div>
             </div>
           </div>
           
           <div className="space-y-16">
-            {/* Mission Section */}
-            <section className="bg-gradient-to-r from-edvantage-light-blue to-white p-8 rounded-2xl shadow-sm">
-              <h2 className="text-2xl font-semibold mb-6 text-edvantage-blue">Our Mission</h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <ul className="space-y-4 text-lg leading-relaxed text-gray-700">
-                    <li className="flex items-start">
-                      <span className="text-green-500 mr-2 mt-1">✅</span>
-                      <span>Enhance student productivity through disciplined time management.</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-green-500 mr-2 mt-1">✅</span>
-                      <span>Support goal achievement by providing tools for scheduling, task management, and reminders.</span>
-                    </li>
-                  </ul>
+            <section className="bg-white rounded-2xl shadow-md overflow-hidden">
+              <div className="grid md:grid-cols-2 gap-0">
+                <div className="p-8 md:p-10">
+                  <h2 className="text-3xl font-bold mb-6 text-edvantage-blue">Our Mission</h2>
+                  <div className="space-y-6">
+                    <div className="flex items-start">
+                      <div className="mr-4 mt-1 bg-edvantage-light-blue/30 p-2 rounded-full">
+                        <Target className="h-5 w-5 text-edvantage-blue" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-edvantage-dark-blue mb-1">Enhance Productivity</h3>
+                        <p className="text-gray-700">Help students master time management and stay focused on their academic goals.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start">
+                      <div className="mr-4 mt-1 bg-edvantage-light-blue/30 p-2 rounded-full">
+                        <Lightbulb className="h-5 w-5 text-edvantage-blue" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-edvantage-dark-blue mb-1">Support Achievement</h3>
+                        <p className="text-gray-700">Provide integrated tools for scheduling, task management, and timely reminders.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start">
+                      <div className="mr-4 mt-1 bg-edvantage-light-blue/30 p-2 rounded-full">
+                        <Users className="h-5 w-5 text-edvantage-blue" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-edvantage-dark-blue mb-1">Foster Collaboration</h3>
+                        <p className="text-gray-700">Enable real-time sharing of study materials, schedules, and academic resources.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start">
+                      <div className="mr-4 mt-1 bg-edvantage-light-blue/30 p-2 rounded-full">
+                        <Rocket className="h-5 w-5 text-edvantage-blue" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-edvantage-dark-blue mb-1">Drive Motivation</h3>
+                        <p className="text-gray-700">Incorporate gamification features to track progress and reward academic achievements.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <ul className="space-y-4 text-lg leading-relaxed text-gray-700">
-                    <li className="flex items-start">
-                      <span className="text-green-500 mr-2 mt-1">✅</span>
-                      <span>Encourage collaboration by enabling real-time sharing of study materials, schedules, and academic resources.</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-green-500 mr-2 mt-1">✅</span>
-                      <span>Motivate students with gamification features that track progress and reward achievements.</span>
-                    </li>
-                  </ul>
+                <div className="bg-gradient-to-tr from-edvantage-blue to-edvantage-light-blue hidden md:flex items-center justify-center">
+                  <img 
+                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f"
+                    alt="Students collaborating" 
+                    className="object-cover w-full h-full mix-blend-overlay opacity-40"
+                  />
+                  <div className="absolute text-white text-center p-10">
+                    <h3 className="text-3xl font-bold mb-4">Empowering Student Success</h3>
+                    <p className="text-xl">One tool at a time</p>
+                  </div>
                 </div>
               </div>
             </section>
             
-            {/* Purpose & Story Section - IMPROVED LAYOUT */}
             <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="grid md:grid-cols-2">
                 <div className="p-8">
@@ -99,7 +129,7 @@ const About = () => {
                     <ArrowRight size={16} className="ml-1" />
                   </Link>
                 </div>
-                <div className="bg-edvantage-light-blue/30">
+                <div className="bg-edvantage-light-blue/30 max-h-96 overflow-hidden">
                   <img 
                     src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b" 
                     alt="Educational technology" 
@@ -111,7 +141,7 @@ const About = () => {
             
             <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="grid md:grid-cols-2">
-                <div className="bg-edvantage-light-blue/30 order-2 md:order-1">
+                <div className="bg-edvantage-light-blue/30 max-h-96 overflow-hidden order-2 md:order-1">
                   <img 
                     src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7" 
                     alt="Student studying" 
@@ -139,7 +169,6 @@ const About = () => {
               </div>
             </section>
             
-            {/* Values Section */}
             <section className="bg-gray-50 p-10 rounded-3xl shadow-inner">
               <h2 className="text-2xl font-semibold mb-8 text-center text-edvantage-blue">Our Values</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

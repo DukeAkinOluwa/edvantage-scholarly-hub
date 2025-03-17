@@ -99,13 +99,22 @@ const Navbar = () => {
         </button>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Updated with improved close functionality */}
       <div
         className={`fixed inset-0 bg-white z-40 transition-transform duration-300 ease-in-out transform md:hidden ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } pt-24`}
       >
-        <div className="container mx-auto px-8 flex flex-col space-y-6">
+        <div className="container mx-auto px-8 flex flex-col space-y-6 relative">
+          {/* Explicit Close Button */}
+          <button 
+            className="absolute top-[-60px] right-4 p-2 hover:bg-gray-100 rounded-full"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={24} className="text-edvantage-dark-gray" />
+          </button>
+          
           <Link
             to="/"
             className="text-xl font-medium py-2 border-b border-gray-100"
