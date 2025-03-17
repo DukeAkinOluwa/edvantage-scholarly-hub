@@ -1,6 +1,8 @@
 
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import PageTransition from "../components/PageTransition";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const About = () => {
   return (
@@ -63,46 +65,79 @@ const About = () => {
               </div>
             </section>
             
-            {/* Purpose & Story Section */}
-            <div className="grid md:grid-cols-2 gap-10">
-              <section>
-                <h2 className="text-2xl font-semibold mb-4 text-edvantage-blue">Our Purpose</h2>
-                <div className="rounded-xl overflow-hidden mb-4 shadow-md">
-                  <AspectRatio ratio={4/3}>
-                    <img 
-                      src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b" 
-                      alt="Educational technology" 
-                      className="object-cover w-full h-full"
-                    />
-                  </AspectRatio>
+            {/* Purpose & Story Section - IMPROVED LAYOUT */}
+            <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="grid md:grid-cols-2">
+                <div className="p-8">
+                  <h2 className="text-2xl font-semibold mb-4 text-edvantage-blue">Our Purpose</h2>
+                  <p className="text-lg leading-relaxed text-gray-700">
+                    Edvantage simplifies the academic journey for tertiary students by providing an engaging and efficient 
+                    platform that integrates time management, collaboration, and academic tools.
+                  </p>
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 h-6 w-6 bg-edvantage-light-blue rounded-full flex items-center justify-center mt-1">
+                        <span className="text-edvantage-blue text-sm">1</span>
+                      </div>
+                      <p className="ml-3 text-gray-700">Overcoming poor time management through structured scheduling</p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 h-6 w-6 bg-edvantage-light-blue rounded-full flex items-center justify-center mt-1">
+                        <span className="text-edvantage-blue text-sm">2</span>
+                      </div>
+                      <p className="ml-3 text-gray-700">Replacing disjointed academic planning with centralized tools</p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 h-6 w-6 bg-edvantage-light-blue rounded-full flex items-center justify-center mt-1">
+                        <span className="text-edvantage-blue text-sm">3</span>
+                      </div>
+                      <p className="ml-3 text-gray-700">Creating a hub for student collaboration and resource sharing</p>
+                    </div>
+                  </div>
+                  <Link to="/contact" className="inline-flex items-center text-edvantage-blue font-medium mt-6 hover:underline">
+                    Learn how we can help you
+                    <ArrowRight size={16} className="ml-1" />
+                  </Link>
                 </div>
-                <p className="text-lg leading-relaxed text-gray-700">
-                  Edvantage simplifies the academic journey for tertiary students by providing an engaging and efficient 
-                  platform that integrates time management, collaboration, and academic tools. The app is built to help 
-                  students overcome challenges such as poor time management, disjointed academic planning, and a lack 
-                  of centralized collaboration tools.
-                </p>
-              </section>
-              
-              <section>
-                <h2 className="text-2xl font-semibold mb-4 text-edvantage-blue">Our Brand Story</h2>
-                <div className="rounded-xl overflow-hidden mb-4 shadow-md">
-                  <AspectRatio ratio={4/3}>
-                    <img 
-                      src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7" 
-                      alt="Student studying" 
-                      className="object-cover w-full h-full"
-                    />
-                  </AspectRatio>
+                <div className="bg-edvantage-light-blue/30">
+                  <img 
+                    src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b" 
+                    alt="Educational technology" 
+                    className="object-cover w-full h-full"
+                  />
                 </div>
-                <p className="text-lg leading-relaxed text-gray-700">
-                  Edvantage was born out of a student's struggle to juggle assignments, deadlines, and personal life. 
-                  Recognizing the need for a centralized academic productivity platform, the idea of Edvantage was 
-                  developed to help students manage their studies effectively, collaborate with peers, and stay 
-                  motivated to achieve academic excellence.
-                </p>
-              </section>
-            </div>
+              </div>
+            </section>
+            
+            <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="grid md:grid-cols-2">
+                <div className="bg-edvantage-light-blue/30 order-2 md:order-1">
+                  <img 
+                    src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7" 
+                    alt="Student studying" 
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+                <div className="p-8 order-1 md:order-2">
+                  <h2 className="text-2xl font-semibold mb-4 text-edvantage-blue">Our Brand Story</h2>
+                  <p className="text-lg leading-relaxed text-gray-700 mb-4">
+                    Edvantage was born out of a student's struggle to juggle assignments, deadlines, and personal life. 
+                  </p>
+                  <p className="text-lg leading-relaxed text-gray-700 mb-4">
+                    Recognizing the need for a centralized academic productivity platform, the idea of Edvantage was 
+                    developed to help students manage their studies effectively, collaborate with peers, and stay 
+                    motivated to achieve academic excellence.
+                  </p>
+                  <div className="bg-edvantage-light-blue/20 p-4 rounded-lg italic text-gray-700 border-l-4 border-edvantage-blue">
+                    "We created Edvantage because we believe every student deserves tools that work as hard as they do."
+                  </div>
+                  <Link to="/team" className="inline-flex items-center text-edvantage-blue font-medium mt-6 hover:underline">
+                    Meet our team
+                    <ArrowRight size={16} className="ml-1" />
+                  </Link>
+                </div>
+              </div>
+            </section>
             
             {/* Values Section */}
             <section className="bg-gray-50 p-10 rounded-3xl shadow-inner">

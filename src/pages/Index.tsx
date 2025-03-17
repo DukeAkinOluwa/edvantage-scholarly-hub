@@ -3,6 +3,7 @@ import PageTransition from "../components/PageTransition";
 import Hero from "../components/Hero";
 import FeatureCard from "../components/FeatureCard";
 import FaqItem from "../components/FaqItem";
+import PricingTier from "../components/PricingTier";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -108,6 +109,69 @@ const Index = () => {
                 delay={index * 100}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NEW Pricing Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-edvantage-blue mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Choose the plan that suits your academic needs, with affordable options for every student.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <PricingTier
+              name="Basic"
+              price="Free"
+              period="forever"
+              description="Essential features for individual students"
+              features={[
+                "Academic calendar",
+                "Basic task management",
+                "Access to study guides",
+                "Email support"
+              ]}
+              ctaText="Get Started"
+              ctaLink="/contact"
+            />
+            
+            <PricingTier
+              name="Pro"
+              price="₦900"
+              period="year"
+              description="Everything in Basic plus premium features"
+              features={[
+                "Advanced task prioritization",
+                "Study group collaboration",
+                "AI study assistant",
+                "Gamification rewards",
+                "Priority support"
+              ]}
+              isPopular={true}
+              ctaText="Try Pro"
+              ctaLink="/contact"
+            />
+            
+            <PricingTier
+              name="Campus"
+              price="Custom"
+              period="year"
+              description="Enterprise solution for institutions"
+              features={[
+                "Everything in Pro",
+                "Campus-wide deployment",
+                "Admin dashboard",
+                "API integration",
+                "Dedicated support",
+                "Custom branding"
+              ]}
+              ctaText="Contact Us"
+              ctaLink="/contact"
+            />
           </div>
         </div>
       </section>
