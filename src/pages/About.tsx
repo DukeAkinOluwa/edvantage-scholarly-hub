@@ -36,62 +36,39 @@ const About = () => {
           </div>
           
           <div className="space-y-16">
-            <section className="bg-white rounded-2xl shadow-md overflow-hidden">
-              <div className="grid md:grid-cols-2 gap-0">
-                <div className="p-8 md:p-10">
-                  <h2 className="text-3xl font-bold mb-6 text-edvantage-blue">Our Mission</h2>
-                  <div className="space-y-6">
-                    <div className="flex items-start">
-                      <div className="mr-4 mt-1 bg-edvantage-light-blue/30 p-2 rounded-full">
-                        <Target className="h-5 w-5 text-edvantage-blue" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-edvantage-dark-blue mb-1">Enhance Productivity</h3>
-                        <p className="text-gray-700">Help students master time management and stay focused on their academic goals.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <div className="mr-4 mt-1 bg-edvantage-light-blue/30 p-2 rounded-full">
-                        <Lightbulb className="h-5 w-5 text-edvantage-blue" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-edvantage-dark-blue mb-1">Support Achievement</h3>
-                        <p className="text-gray-700">Provide integrated tools for scheduling, task management, and timely reminders.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <div className="mr-4 mt-1 bg-edvantage-light-blue/30 p-2 rounded-full">
-                        <Users className="h-5 w-5 text-edvantage-blue" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-edvantage-dark-blue mb-1">Foster Collaboration</h3>
-                        <p className="text-gray-700">Enable real-time sharing of study materials, schedules, and academic resources.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <div className="mr-4 mt-1 bg-edvantage-light-blue/30 p-2 rounded-full">
-                        <Rocket className="h-5 w-5 text-edvantage-blue" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-edvantage-dark-blue mb-1">Drive Motivation</h3>
-                        <p className="text-gray-700">Incorporate gamification features to track progress and reward academic achievements.</p>
-                      </div>
-                    </div>
+            <section className="bg-white rounded-2xl shadow-md overflow-hidden p-8 md:p-10">
+              <h2 className="text-3xl font-bold mb-8 text-center text-edvantage-blue">Our Mission</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform duration-300 border border-edvantage-light-blue">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-edvantage-light-blue flex items-center justify-center">
+                    <Target className="h-8 w-8 text-edvantage-blue" />
                   </div>
+                  <h3 className="text-xl font-semibold mb-3 text-center text-edvantage-dark-blue">Enhance Productivity</h3>
+                  <p className="text-gray-700 text-center">Help students master time management and stay focused on their academic goals.</p>
                 </div>
-                <div className="bg-gradient-to-tr from-edvantage-blue to-edvantage-light-blue hidden md:flex items-center justify-center">
-                  <img 
-                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f"
-                    alt="Students collaborating" 
-                    className="object-cover w-full h-full mix-blend-overlay opacity-40"
-                  />
-                  <div className="absolute text-white text-center p-10">
-                    <h3 className="text-3xl font-bold mb-4">Empowering Student Success</h3>
-                    <p className="text-xl">One tool at a time</p>
+                
+                <div className="bg-white rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform duration-300 border border-edvantage-light-blue">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-edvantage-light-blue flex items-center justify-center">
+                    <Lightbulb className="h-8 w-8 text-edvantage-blue" />
                   </div>
+                  <h3 className="text-xl font-semibold mb-3 text-center text-edvantage-dark-blue">Support Achievement</h3>
+                  <p className="text-gray-700 text-center">Provide integrated tools for scheduling, task management, and timely reminders.</p>
+                </div>
+                
+                <div className="bg-white rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform duration-300 border border-edvantage-light-blue">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-edvantage-light-blue flex items-center justify-center">
+                    <Users className="h-8 w-8 text-edvantage-blue" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-center text-edvantage-dark-blue">Foster Collaboration</h3>
+                  <p className="text-gray-700 text-center">Enable real-time sharing of study materials, schedules, and academic resources.</p>
+                </div>
+                
+                <div className="bg-white rounded-lg shadow-md p-6 transform hover:scale-105 transition-transform duration-300 border border-edvantage-light-blue">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-edvantage-light-blue flex items-center justify-center">
+                    <Rocket className="h-8 w-8 text-edvantage-blue" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-center text-edvantage-dark-blue">Drive Motivation</h3>
+                  <p className="text-gray-700 text-center">Incorporate gamification features to track progress and reward academic achievements.</p>
                 </div>
               </div>
             </section>
