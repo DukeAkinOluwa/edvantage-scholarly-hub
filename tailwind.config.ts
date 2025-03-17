@@ -68,9 +68,9 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				edvantage: {
-					'blue': '#0075FF',
-					'light-blue': '#E6F2FF',
-					'dark-blue': '#0050B3',
+					'blue': '#2A52BE',          // Updated from #0075FF to #2A52BE
+					'light-blue': '#FAFBFD',    // Updated from #E6F2FF to #FAFBFD
+					'dark-blue': '#1E3A87',     // Adjusted dark blue to match the new blue
 					'accent': '#FF6B00',
 					'gray': '#F5F7FA',
 					'dark-gray': '#4A5568'
