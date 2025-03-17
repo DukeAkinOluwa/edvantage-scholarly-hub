@@ -9,10 +9,11 @@ interface BlogCardProps {
   date: string;
   category: string;
   imageUrl: string;
+  author: string;
   delay?: number;
 }
 
-const BlogCard = ({ title, excerpt, slug, date, category, imageUrl, delay = 0 }: BlogCardProps) => {
+const BlogCard = ({ title, excerpt, slug, date, category, imageUrl, author, delay = 0 }: BlogCardProps) => {
   const animationStyle = {
     animationDelay: `${delay}ms`,
   };

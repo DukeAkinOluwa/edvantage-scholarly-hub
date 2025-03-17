@@ -8,6 +8,7 @@ export interface BlogPost {
   date: string;
   author: string;
   imageUrl: string;
+  category?: string;
   tags?: string[];
 }
 
@@ -20,6 +21,7 @@ export const blogPosts: BlogPost[] = [
     date: "June 15, 2023",
     author: "Akinduko AkinOluwa",
     imageUrl: "https://images.unsplash.com/photo-1606761568499-6d2451b23c66?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
+    category: "Time Management",
     tags: ["Time Management", "Productivity", "Assignments"]
   },
   {
@@ -30,6 +32,7 @@ export const blogPosts: BlogPost[] = [
     date: "July 2, 2023",
     author: "Owolabi Titilayo",
     imageUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1632&q=80",
+    category: "Collaboration",
     tags: ["Collaboration", "Study Groups", "Learning"]
   },
   {
@@ -40,6 +43,7 @@ export const blogPosts: BlogPost[] = [
     date: "August 10, 2023",
     author: "David Adeyemi",
     imageUrl: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80",
+    category: "Gamification",
     tags: ["Gamification", "Motivation", "Academic Success"]
   },
   {
@@ -50,6 +54,7 @@ export const blogPosts: BlogPost[] = [
     date: "September 5, 2023",
     author: "Oluwaseun Johnson",
     imageUrl: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
+    category: "AI Support",
     tags: ["AI Support", "Study Techniques", "Academic Excellence"]
   },
   {
@@ -60,6 +65,7 @@ export const blogPosts: BlogPost[] = [
     date: "October 12, 2023",
     author: "Akinduko AkinOluwa",
     imageUrl: "https://images.unsplash.com/photo-1517486808906-6ca8b3f8e1c1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
+    category: "Nigerian Education",
     tags: ["Nigerian Education", "Local Solutions", "Academic Challenges"]
   },
   {
@@ -70,6 +76,7 @@ export const blogPosts: BlogPost[] = [
     date: "November 8, 2023",
     author: "Owolabi Titilayo",
     imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    category: "FAQ",
     tags: ["FAQ", "Getting Started", "User Guide"]
   }
 ];

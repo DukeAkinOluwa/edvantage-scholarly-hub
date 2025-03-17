@@ -5,8 +5,6 @@ import PageTransition from "../components/PageTransition";
 import BlogCard from "../components/BlogCard";
 import { blogPosts } from "../data/blogData";
 
-// Create a fake blogPosts data since it's not provided in the allowed files
-// This will be placeholders until real data is added
 const Blog = () => {
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -55,6 +53,7 @@ const Blog = () => {
                   author={post.author}
                   slug={post.slug}
                   imageUrl={post.imageUrl}
+                  category={post.category || "General"}
                   delay={index * 100}
                 />
               ))}
