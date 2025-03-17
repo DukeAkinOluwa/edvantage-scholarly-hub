@@ -40,7 +40,7 @@ const Footer = () => {
                 <Twitter size={20} />
               </a>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/edvantage_edu"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-edvantage-dark-gray hover:text-edvantage-blue transition-colors"
@@ -49,7 +49,7 @@ const Footer = () => {
                 <Instagram size={20} />
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://linkedin.com/company/edvantageng"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-edvantage-dark-gray hover:text-edvantage-blue transition-colors"
@@ -158,10 +158,10 @@ const Footer = () => {
               <li className="flex items-center">
                 <Mail size={18} className="mr-2 text-edvantage-blue" />
                 <a
-                  href="mailto:info@edvantage.app"
+                  href="mailto:edvantage.edu.ng@gmail.con"
                   className="text-edvantage-dark-gray hover:text-edvantage-blue transition-colors"
                 >
-                  info@edvantage.app
+                  edvantage.edu.ng@gmail.con
                 </a>
               </li>
             </ul>

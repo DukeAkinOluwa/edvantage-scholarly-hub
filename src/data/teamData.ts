@@ -21,11 +21,11 @@ export const teamMembers: TeamMember[] = [
     socialLinks: [
       {
         platform: "twitter",
-        url: "https://twitter.com/akinoluwa"
+        url: "https://x.com/AkinAkinduko"
       },
       {
         platform: "linkedin",
-        url: "https://linkedin.com/in/akinoluwa"
+        url: "https://linkedin.com/in/akindukoakinoluwa"
       }
     ]
   },
@@ -38,11 +38,11 @@ export const teamMembers: TeamMember[] = [
     socialLinks: [
       {
         platform: "twitter",
-        url: "https://twitter.com/titilayo"
+        url: "https://x.com"
       },
       {
         platform: "linkedin",
-        url: "https://linkedin.com/in/titilayo"
+        url: "https://linkedin.com/in/titilayo-owolabi-9b6416264"
       }
     ]
   },
