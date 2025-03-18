@@ -22,7 +22,7 @@ const DashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-all duration-300">
+    <div className="min-h-screen bg-[hsl(var(--background))] dark:bg-[hsl(var(--background))] flex transition-all duration-300">
       <DashboardSidebar onToggleCollapse={handleSidebarToggle} />
       
       <div className={`flex-1 flex flex-col transition-all duration-300 ${
