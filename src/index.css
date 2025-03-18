@@ -38,8 +38,38 @@
     --radius: 1rem;
   }
 
+  .dark {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 222 70% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 222 47% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 47% 15%;
+    --muted-foreground: 210 40% 60%;
+
+    --accent: 25 100% 50%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 47% 20%;
+    --input: 222 47% 20%;
+    --ring: 210 40% 90%;
+  }
+
   * {
-    @apply border-border;
+    @apply border-[hsl(var(--border))];
   }
 
   html {
@@ -49,7 +79,9 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -57,7 +89,7 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-lg rounded-2xl;
+    @apply bg-white/80 dark:bg-black/20 backdrop-blur-lg border border-white/20 dark:border-white/10 shadow-lg rounded-2xl;
   }
   
   .section-container {
@@ -65,19 +97,19 @@
   }
   
   .heading-xl {
-    @apply text-4xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight;
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
   }
   
   .heading-lg {
-    @apply text-3xl md:text-4xl font-display font-bold tracking-tight;
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
   }
   
   .heading-md {
-    @apply text-2xl md:text-3xl font-display font-bold tracking-tight;
+    @apply text-2xl md:text-3xl font-bold tracking-tight;
   }
   
   .heading-sm {
-    @apply text-xl md:text-2xl font-display font-semibold tracking-tight;
+    @apply text-xl md:text-2xl font-semibold tracking-tight;
   }
   
   .btn-primary {
@@ -85,15 +117,33 @@
   }
   
   .btn-secondary {
-    @apply px-6 py-3 bg-white text-edvantage-blue border border-edvantage-blue rounded-full font-medium hover:bg-edvantage-light-blue transition-all duration-300 active:scale-95;
+    @apply px-6 py-3 bg-white dark:bg-gray-800 text-edvantage-blue dark:text-edvantage-light-blue border border-edvantage-blue dark:border-edvantage-light-blue rounded-full font-medium hover:bg-edvantage-light-blue dark:hover:bg-gray-700 transition-all duration-300 active:scale-95;
   }
   
   .nav-link {
-    @apply relative text-edvantage-dark-gray hover:text-edvantage-blue transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-edvantage-blue after:origin-center after:scale-x-0 hover:after:scale-x-100 after:transition-transform;
+    @apply relative text-edvantage-dark-gray dark:text-gray-300 hover:text-edvantage-blue dark:hover:text-edvantage-light-blue transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-edvantage-blue dark:after:bg-edvantage-light-blue after:origin-center after:scale-x-0 hover:after:scale-x-100 after:transition-transform;
   }
   
   .nav-link.active {
-    @apply text-edvantage-blue after:scale-x-100;
+    @apply text-edvantage-blue dark:text-edvantage-light-blue after:scale-x-100;
+  }
+
+  /* Calendar hover styles */
+  .rdp-day:hover:not([aria-disabled='true']) {
+    @apply bg-edvantage-calendar-hover dark:bg-edvantage-blue/20 !important;
+  }
+  
+  /* Achievement animation classes */
+  .achievement-unlocked {
+    @apply animate-bounce-in;
+  }
+  
+  .achievement-star {
+    @apply animate-rotate-star;
+  }
+  
+  .achievement-float {
+    @apply animate-float;
   }
 }
 
@@ -121,3 +171,25 @@
 .staggered-item:nth-child(6) { animation-delay: 0.6s; }
 .staggered-item:nth-child(7) { animation-delay: 0.7s; }
 .staggered-item:nth-child(8) { animation-delay: 0.8s; }
+
+/* Dark mode toggle animation */
+.dark-mode-toggle {
+  @apply relative w-14 h-7 rounded-full bg-gray-200 dark:bg-gray-700 transition-colors duration-300 cursor-pointer;
+}
+
+.dark-mode-toggle-handle {
+  @apply absolute top-1 left-1 w-5 h-5 bg-white dark:bg-gray-900 rounded-full transform transition-transform duration-300;
+}
+
+.dark-mode-toggle.dark .dark-mode-toggle-handle {
+  @apply translate-x-7;
+}
+
+/* Achievement confetti */
+.confetti-container {
+  @apply fixed top-0 left-0 w-full h-full pointer-events-none z-50 overflow-hidden;
+}
+
+.confetti {
+  @apply absolute w-2 h-2 animate-confetti;
+}

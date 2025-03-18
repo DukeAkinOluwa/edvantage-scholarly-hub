@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Calendar, BookOpen, Users, Briefcase, 
   Brain, Award, Bell, Settings, LogOut,
-  Menu, X, ChevronRight, Home
+  Menu, X, ChevronRight, Home, Download,
+  Sun, Moon
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -17,12 +18,33 @@ type SidebarLink = {
   path: string;
 };
 
-const DashboardSidebar = () => {
+interface DashboardSidebarProps {
+  onToggleCollapse?: (collapsed: boolean) => void;
+}
+
+const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Check if dark mode is enabled
+    const isDark = document.documentElement.classList.contains('dark');
+    setIsDarkMode(isDark);
+    
+    // Add event listener for window resize
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsCollapsed(false);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const links: SidebarLink[] = [
     { title: 'Dashboard', icon: Home, path: '/dashboard' },
@@ -45,11 +67,49 @@ const DashboardSidebar = () => {
   };
 
   const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
+    const newCollapsedState = !isCollapsed;
+    setIsCollapsed(newCollapsedState);
+    
+    // Notify parent component if callback is provided
+    if (onToggleCollapse) {
+      onToggleCollapse(newCollapsedState);
+    }
   };
 
   const toggleMobileSidebar = () => {
     setIsMobileOpen(!isMobileOpen);
+  };
+
+  const toggleDarkMode = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    }
+    setIsDarkMode(!isDarkMode);
+  };
+
+  const downloadUserData = () => {
+    toast({
+      title: "Data Export",
+      description: "Your data is being prepared for download. This may take a moment.",
+    });
+    
+    // Simulate PDF generation with timeout
+    setTimeout(() => {
+      toast({
+        title: "Data Ready",
+        description: "Your data has been prepared and is downloading now.",
+      });
+      
+      // This would normally generate and provide a real PDF, we're just simulating for now
+      const link = document.createElement('a');
+      link.href = '#';
+      link.download = 'user-data-export.pdf';
+      link.click();
+    }, 2000);
   };
 
   // Render a sidebar link
@@ -65,8 +125,8 @@ const DashboardSidebar = () => {
               to={link.path}
               className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                 isActive 
-                  ? 'bg-edvantage-blue text-white' 
-                  : 'hover:bg-edvantage-light-blue text-edvantage-dark-gray'
+                  ? 'bg-edvantage-blue dark:bg-edvantage-blue/80 text-white' 
+                  : 'hover:bg-edvantage-light-blue dark:hover:bg-gray-800 text-edvantage-dark-gray dark:text-gray-300'
               }`}
               onClick={() => setIsMobileOpen(false)}
             >
@@ -89,7 +149,7 @@ const DashboardSidebar = () => {
     <>
       <div className="flex items-center justify-between px-4 py-5">
         {!isCollapsed && (
-          <Link to="/dashboard" className="text-xl font-bold text-edvantage-blue flex items-center">
+          <Link to="/dashboard" className="text-xl font-bold text-edvantage-blue dark:text-edvantage-light-blue flex items-center">
             Edvantage
           </Link>
         )}
@@ -120,7 +180,7 @@ const DashboardSidebar = () => {
       {!isCollapsed && (
         <div className="px-4 pb-4">
           <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-full bg-edvantage-blue flex items-center justify-center text-white font-medium">
+            <div className="h-10 w-10 rounded-full bg-edvantage-blue dark:bg-edvantage-blue/80 flex items-center justify-center text-white font-medium">
               {user?.name.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
@@ -135,13 +195,64 @@ const DashboardSidebar = () => {
         {links.map(renderLink)}
       </div>
       
-      <div className="mt-auto px-2 pb-6">
+      <div className="mt-auto px-2 pb-2 space-y-1">
+        {/* Dark Mode Toggle */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                className={`w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600 ${
+                className={`w-full justify-start hover:bg-edvantage-light-blue dark:hover:bg-gray-800 ${
+                  isCollapsed ? 'px-0 justify-center' : 'px-4'
+                }`}
+                onClick={toggleDarkMode}
+              >
+                {isDarkMode ? (
+                  <Sun size={20} className={`text-yellow-400 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
+                ) : (
+                  <Moon size={20} className={`text-gray-500 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
+                )}
+                {!isCollapsed && <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>}
+              </Button>
+            </TooltipTrigger>
+            {isCollapsed && (
+              <TooltipContent side="right">
+                {isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+        
+        {/* Download User Data */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start hover:bg-edvantage-light-blue dark:hover:bg-gray-800 ${
+                  isCollapsed ? 'px-0 justify-center' : 'px-4'
+                }`}
+                onClick={downloadUserData}
+              >
+                <Download size={20} className={`text-edvantage-blue dark:text-edvantage-light-blue ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
+                {!isCollapsed && <span>Export My Data</span>}
+              </Button>
+            </TooltipTrigger>
+            {isCollapsed && (
+              <TooltipContent side="right">
+                Export My Data
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+        
+        {/* Logout button */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 ${
                   isCollapsed ? 'px-0 justify-center' : 'px-4'
                 }`}
                 onClick={handleLogout}
@@ -166,7 +277,7 @@ const DashboardSidebar = () => {
     <Button
       variant="outline"
       size="icon"
-      className="fixed bottom-4 right-4 z-20 md:hidden bg-white shadow-lg rounded-full h-12 w-12"
+      className="fixed bottom-4 right-4 z-20 md:hidden bg-white dark:bg-gray-800 shadow-lg rounded-full h-12 w-12"
       onClick={toggleMobileSidebar}
       aria-label="Open sidebar"
     >
@@ -178,7 +289,7 @@ const DashboardSidebar = () => {
     <>
       {/* Desktop sidebar */}
       <div
-        className={`fixed top-0 left-0 bottom-0 z-30 bg-white border-r border-gray-200 flex flex-col transition-all md:translate-x-0 ${
+        className={`fixed top-0 left-0 bottom-0 z-30 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all md:translate-x-0 ${
           isCollapsed ? 'w-16' : 'w-64'
         } ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
