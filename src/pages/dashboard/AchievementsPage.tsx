@@ -1,23 +1,23 @@
-
 import React, { useState } from 'react';
-import { Award, Trophy, Shield, Target, Crown, Clock, Share2, ArrowUpRight } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Award, TrendingUp, Trophy, Users, Calendar, BookOpen, Brain, CheckSquare, Clock } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   achievements, 
   leaderboard, 
   Achievement, 
-  LeaderboardEntry,
-  tasks
+  LeaderboardEntry 
 } from '@/data/dummyData';
 
 const AchievementsPage = () => {
   const [userPoints, setUserPoints] = useState(820); // Mock user points
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // Sort achievements by earned first, then by progress percentage
   const sortedAchievements = [...achievements].sort((a, b) => {
@@ -572,6 +572,3 @@ const AchievementsPage = () => {
 };
 
 export default AchievementsPage;
-
-// Adding these imports that we used but weren't defined
-import { BookOpen, Palette, Headset } from 'lucide-react';

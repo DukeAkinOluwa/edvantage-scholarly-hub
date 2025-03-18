@@ -5,7 +5,7 @@ import {
   Users, School, ChevronDown, BarChart3, Book, User,
   GraduationCap, Settings, Calendar, LogOut, Bell, 
   Search, ChevronRight, PieChart, Activity, HelpCircle,
-  Download, ArrowUpRight, FileText, CreditCard
+  Download, ArrowUpRight, FileText, CreditCard, Menu, Plus
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

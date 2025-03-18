@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Bell, User, Lock, LogOut, Moon, Sun, Globe, Shield, Trash2 } from 'lucide-react';
+import { Bell, User, Lock, LogOut, Moon, Sun, Globe, Shield, Trash2, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
