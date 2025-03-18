@@ -18,7 +18,11 @@ type SidebarLink = {
   path: string;
 };
 
-const DashboardSidebar = () => {
+interface DashboardSidebarProps {
+  onToggleCollapse?: (collapsed: boolean) => void;
+}
+
+const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
@@ -63,7 +67,13 @@ const DashboardSidebar = () => {
   };
 
   const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
+    const newCollapsedState = !isCollapsed;
+    setIsCollapsed(newCollapsedState);
+    
+    // Notify parent component if callback is provided
+    if (onToggleCollapse) {
+      onToggleCollapse(newCollapsedState);
+    }
   };
 
   const toggleMobileSidebar = () => {
