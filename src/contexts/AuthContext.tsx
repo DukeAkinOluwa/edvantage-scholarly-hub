@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getLocalStorageItem, setLocalStorageItem, removeLocalStorageItem } from '@/utils/storage';
 
 // Mock user data
 export type User = {
@@ -12,12 +13,13 @@ export type User = {
   level: string;
   joinedAt: string;
   isNewUser: boolean;
+  accountType: 'student' | 'organization';
 };
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, accountType: 'student' | 'organization') => Promise<void>;
   register: (userData: Partial<User> & { password: string }) => Promise<void>;
   logout: () => void;
 };
@@ -34,7 +36,22 @@ const DEMO_USER: User = {
   department: "Computer Science",
   level: "300 Level",
   joinedAt: "2023-05-01",
-  isNewUser: false
+  isNewUser: false,
+  accountType: "student"
+};
+
+// Mock organization user
+const DEMO_ORG_USER: User = {
+  id: "org-123",
+  name: "Lagos University",
+  email: "admin@lagosuniversity.edu",
+  profilePic: "https://i.pravatar.cc/150?img=3",
+  university: "University of Lagos",
+  department: "Administration",
+  level: "Admin",
+  joinedAt: "2022-01-15",
+  isNewUser: false,
+  accountType: "organization"
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -43,14 +60,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check localStorage for saved user
-    const savedUser = localStorage.getItem('edvantageUser');
+    const savedUser = getLocalStorageItem<User>('edvantageUser');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      setUser(savedUser);
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, accountType: 'student' | 'organization' = 'student') => {
     setIsLoading(true);
     try {
       // This is a mock authentication - in a real app, this would call an API
@@ -58,9 +75,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // For demo, we'll accept any login with non-empty values
       if (email && password) {
-        // Use the demo user data
-        setUser(DEMO_USER);
-        localStorage.setItem('edvantageUser', JSON.stringify(DEMO_USER));
+        // Use the appropriate demo user based on account type
+        const userToSet = accountType === 'organization' ? DEMO_ORG_USER : DEMO_USER;
+        setUser(userToSet);
+        setLocalStorageItem('edvantageUser', userToSet);
       } else {
         throw new Error("Invalid credentials");
       }
@@ -88,11 +106,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         department: userData.department || "Computer Science",
         level: userData.level || "100 Level",
         joinedAt: new Date().toISOString(),
-        isNewUser: true
+        isNewUser: true,
+        accountType: userData.accountType || 'student'
       };
       
       setUser(newUser);
-      localStorage.setItem('edvantageUser', JSON.stringify(newUser));
+      setLocalStorageItem('edvantageUser', newUser);
     } catch (error) {
       console.error("Registration failed:", error);
       throw error;
@@ -103,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('edvantageUser');
+    removeLocalStorageItem('edvantageUser');
   };
 
   return (

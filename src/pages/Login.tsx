@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { GraduationCap, Building2, Moon, Sun } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
 const Login = () => {
-  const [accountType, setAccountType] = useState('student');
+  const [accountType, setAccountType] = useState<'student' | 'organization'>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [organizationId, setOrganizationId] = useState('');
@@ -30,6 +30,11 @@ const Login = () => {
   const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the redirect path from location state or default to dashboard
+  const from = location.state?.from?.pathname || 
+               (accountType === 'organization' ? '/school-admin' : '/dashboard');
 
   const toggleDarkMode = () => {
     if (isDarkMode) {
@@ -47,7 +52,7 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
+      await login(email, password, accountType);
       
       toast({
         title: "Login successful",
@@ -55,11 +60,9 @@ const Login = () => {
       });
       
       // Redirect based on account type
-      if (accountType === 'organization') {
-        navigate('/school-admin');
-      } else {
-        navigate('/dashboard');
-      }
+      const redirectPath = accountType === 'organization' ? '/school-admin' : from;
+      navigate(redirectPath, { replace: true });
+      
     } catch (error) {
       toast({
         title: "Login failed",
@@ -88,7 +91,7 @@ const Login = () => {
       
       <Card className="w-full max-w-md shadow-lg animate-fade-in dark:bg-gray-800 dark:text-gray-100">
         <CardHeader className="space-y-1">
-          <Tabs defaultValue="student" onValueChange={setAccountType} className="w-full">
+          <Tabs defaultValue="student" onValueChange={(value) => setAccountType(value as 'student' | 'organization')} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="student" className="flex items-center justify-center gap-2">
                 <GraduationCap className="h-4 w-4" />

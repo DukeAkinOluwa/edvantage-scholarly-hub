@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -46,25 +45,6 @@ const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const SchoolDashboard = lazy(() => import("./pages/admin/SchoolDashboard"));
 
-// Utils for local storage
-const setStorageData = (key: string, data: any) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-  } catch (error) {
-    console.error('Error setting local storage data:', error);
-  }
-};
-
-const getStorageData = (key: string) => {
-  try {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
-  } catch (error) {
-    console.error('Error getting local storage data:', error);
-    return null;
-  }
-};
-
 const queryClient = new QueryClient();
 
 // Root component to handle redirects based on auth state
@@ -76,9 +56,13 @@ const Root = () => {
     return <PageLoader />;
   }
   
-  // If logged in, redirect to dashboard
+  // If logged in, redirect to appropriate dashboard based on account type
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    if (user.accountType === 'organization') {
+      return <Navigate to="/school-admin" replace />;
+    } else {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
   
   // Otherwise render the landing page
@@ -131,11 +115,11 @@ const App = () => {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   
-                  {/* Protected dashboard routes */}
+                  {/* Protected student dashboard routes */}
                   <Route 
                     path="/dashboard" 
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedAccountTypes={['student']}>
                         <DashboardLayout />
                       </ProtectedRoute>
                     }
@@ -172,10 +156,11 @@ const App = () => {
                     } 
                   />
                   
+                  {/* School/Organization admin dashboard */}
                   <Route 
                     path="/school-admin" 
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedAccountTypes={['organization']}>
                         <SchoolDashboard />
                       </ProtectedRoute>
                     } 

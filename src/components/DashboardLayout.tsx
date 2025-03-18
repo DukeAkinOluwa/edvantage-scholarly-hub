@@ -7,35 +7,23 @@ import DashboardHeader from './DashboardHeader';
 const DashboardLayout: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
+  // Check if sidebar is collapsed from localStorage on mount
   useEffect(() => {
-    // Function to check if sidebar is collapsed
-    const checkSidebarState = () => {
-      const sidebarElement = document.querySelector('[class*="fixed top-0 left-0 bottom-0 z-30"]');
-      if (sidebarElement) {
-        const classes = sidebarElement.className;
-        setIsSidebarCollapsed(classes.includes('w-16'));
-      }
-    };
-
-    // Initial check
-    checkSidebarState();
-
-    // Set up a mutation observer to detect changes to the sidebar
-    const observer = new MutationObserver(checkSidebarState);
-    const targetNode = document.body;
-    
-    if (targetNode) {
-      observer.observe(targetNode, { attributes: true, childList: true, subtree: true });
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    if (savedState) {
+      setIsSidebarCollapsed(savedState === 'true');
     }
-
-    return () => {
-      observer.disconnect();
-    };
   }, []);
 
+  // Handler for sidebar toggle
+  const handleSidebarToggle = (collapsed: boolean) => {
+    setIsSidebarCollapsed(collapsed);
+    localStorage.setItem('sidebarCollapsed', String(collapsed));
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      <DashboardSidebar />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-all duration-300">
+      <DashboardSidebar onToggleCollapse={handleSidebarToggle} />
       
       <div className={`flex-1 flex flex-col transition-all duration-300 ${
         isSidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
