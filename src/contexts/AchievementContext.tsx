@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
@@ -38,7 +37,6 @@ export const AchievementProvider: React.FC<{ children: ReactNode }> = ({ childre
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // Load achievements from localStorage on mount
   useEffect(() => {
     if (user) {
       const savedAchievements = localStorage.getItem(`edvantage-achievements-${user.id}`);
@@ -54,7 +52,6 @@ export const AchievementProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }, [user]);
   
-  // Save achievements to localStorage when they change
   useEffect(() => {
     if (user && achievements.length > 0) {
       localStorage.setItem(`edvantage-achievements-${user.id}`, JSON.stringify(achievements));
@@ -62,10 +59,8 @@ export const AchievementProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }, [achievements, userPoints, user]);
   
-  // Helper to filter earned achievements
   const earnedAchievements = achievements.filter(achievement => achievement.earnedAt);
   
-  // Update achievement progress
   const updateAchievementProgress = (id: string, progress: number) => {
     setAchievements(prevAchievements => {
       return prevAchievements.map(achievement => {
@@ -75,7 +70,6 @@ export const AchievementProvider: React.FC<{ children: ReactNode }> = ({ childre
             progress: Math.min(progress, achievement.maxProgress)
           };
           
-          // If progress is complete but achievement not earned yet, award it
           if (progress >= achievement.maxProgress && !achievement.earnedAt) {
             awardAchievement(id);
           }
@@ -87,23 +81,16 @@ export const AchievementProvider: React.FC<{ children: ReactNode }> = ({ childre
     });
   };
   
-  // Award an achievement
   const awardAchievement = (id: string) => {
     setAchievements(prevAchievements => {
       return prevAchievements.map(achievement => {
         if (achievement.id === id && !achievement.earnedAt) {
           const now = new Date().toISOString();
           
-          // Add points to user
           setUserPoints(prev => prev + achievement.points);
           
-          // Show achievement animation
-          showAchievementAnimation({
-            ...achievement,
-            earnedAt: now
-          });
+          showAchievementAnimation(id);
           
-          // Display toast
           toast({
             title: '🏆 Achievement Unlocked!',
             description: `You earned "${achievement.title}" and gained ${achievement.points} points!`,
@@ -120,7 +107,6 @@ export const AchievementProvider: React.FC<{ children: ReactNode }> = ({ childre
     });
   };
   
-  // Generate a shareable link for achievements
   const getShareableLink = () => {
     if (!user) return '';
     
@@ -136,8 +122,6 @@ export const AchievementProvider: React.FC<{ children: ReactNode }> = ({ childre
       }))
     };
     
-    // In a real app, we would create a proper sharable link
-    // For demo purposes, create a shareable link with encoded data
     const shareableId = uuidv4().substring(0, 8);
     const baseUrl = window.location.origin;
     localStorage.setItem(`edvantage-share-${shareableId}`, JSON.stringify(shareData));
@@ -145,12 +129,13 @@ export const AchievementProvider: React.FC<{ children: ReactNode }> = ({ childre
     return `${baseUrl}/achievements/shared/${shareableId}`;
   };
   
-  // Show achievement animation
-  const showAchievementAnimation = (achievement: Achievement) => {
+  const showAchievementAnimation = (achievementId: string) => {
+    const achievement = achievements.find(a => a.id === achievementId);
+    if (!achievement) return;
+    
     setCurrentAnimatingAchievement(achievement);
     setIsAnimationVisible(true);
     
-    // Hide animation after 5 seconds
     setTimeout(() => {
       setIsAnimationVisible(false);
       setCurrentAnimatingAchievement(null);
