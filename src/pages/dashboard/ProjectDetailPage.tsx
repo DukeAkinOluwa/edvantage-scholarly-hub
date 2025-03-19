@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -44,8 +43,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
-// Import the mock data
-import { mockProjects } from '@/pages/dashboard/ProjectsPage';
+// Import the mock data from types/project instead of ProjectsPage
+import { mockProjects } from '@/types/project';
 
 type ProjectStatus = 'in-progress' | 'completed' | 'overdue' | 'planned';
 type ProjectPriority = 'high' | 'medium' | 'low';
@@ -146,11 +145,9 @@ const ProjectDetailPage: React.FC = () => {
   });
   const [editedProject, setEditedProject] = useState<Partial<Project>>({});
   
-  // Fetch project data
   useEffect(() => {
     setLoading(true);
     
-    // Fetch the project from mock data
     const foundProject = mockProjects.find(p => p.id === projectId);
     
     if (foundProject) {
@@ -217,7 +214,6 @@ const ProjectDetailPage: React.FC = () => {
       }
     ];
     
-    // Update tasks and recalculate progress
     const updatedProject = {
       ...project,
       tasks: updatedTasks,
@@ -239,7 +235,6 @@ const ProjectDetailPage: React.FC = () => {
       task.id === taskId ? { ...task, completed } : task
     );
     
-    // Update tasks and recalculate progress
     const updatedProject = {
       ...project,
       tasks: updatedTasks,
