@@ -66,7 +66,6 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All priorities</SelectItem>
                     <SelectItem value="high">High priority</SelectItem>
                     <SelectItem value="medium">Medium priority</SelectItem>
                     <SelectItem value="low">Low priority</SelectItem>
