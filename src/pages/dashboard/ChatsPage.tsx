@@ -106,7 +106,7 @@ const mockChats: Chat[] = [
     ],
     lastMessage: {
       text: 'Did you finish the assignment?',
-      timestamp: '2023-06-15T14:30:00Z',
+      timestamp: '2025-06-15T14:30:00Z',
       senderId: 'user-2',
       unread: true
     },
@@ -115,21 +115,21 @@ const mockChats: Chat[] = [
         id: 'msg-1-1',
         senderId: 'user-1',
         text: 'Hey Sarah, how are you doing with the project?',
-        timestamp: '2023-06-15T14:20:00Z',
+        timestamp: '2025-06-15T14:20:00Z',
         status: 'read'
       },
       {
         id: 'msg-1-2',
         senderId: 'user-2',
         text: 'I\'m making good progress! Just working on the final part.',
-        timestamp: '2023-06-15T14:25:00Z',
+        timestamp: '2025-06-15T14:25:00Z',
         status: 'read'
       },
       {
         id: 'msg-1-3',
         senderId: 'user-2',
         text: 'Did you finish the assignment?',
-        timestamp: '2023-06-15T14:30:00Z',
+        timestamp: '2025-06-15T14:30:00Z',
         status: 'delivered'
       }
     ]
@@ -144,12 +144,12 @@ const mockChats: Chat[] = [
         name: 'Miguel Rodriguez',
         avatar: 'https://i.pravatar.cc/150?img=12',
         status: 'offline',
-        lastSeen: '2023-06-15T10:45:00Z'
+        lastSeen: '2025-06-15T10:45:00Z'
       }
     ],
     lastMessage: {
       text: 'Let\'s meet tomorrow to discuss the research.',
-      timestamp: '2023-06-14T18:15:00Z',
+      timestamp: '2025-06-14T18:15:00Z',
       senderId: 'user-1',
       unread: false
     },
@@ -158,21 +158,21 @@ const mockChats: Chat[] = [
         id: 'msg-2-1',
         senderId: 'user-3',
         text: 'Hi John, I found some interesting research papers for our project.',
-        timestamp: '2023-06-14T17:50:00Z',
+        timestamp: '2025-06-14T17:50:00Z',
         status: 'read'
       },
       {
         id: 'msg-2-2',
         senderId: 'user-1',
         text: 'That\'s great! Can you share them with me?',
-        timestamp: '2023-06-14T18:00:00Z',
+        timestamp: '2025-06-14T18:00:00Z',
         status: 'read'
       },
       {
         id: 'msg-2-3',
         senderId: 'user-1',
         text: 'Let\'s meet tomorrow to discuss the research.',
-        timestamp: '2023-06-14T18:15:00Z',
+        timestamp: '2025-06-14T18:15:00Z',
         status: 'read'
       }
     ]
@@ -205,7 +205,7 @@ const mockChats: Chat[] = [
     ],
     lastMessage: {
       text: 'I\'ll send the revised proposal tomorrow.',
-      timestamp: '2023-06-15T12:10:00Z',
+      timestamp: '2025-06-15T12:10:00Z',
       senderId: 'user-4',
       unread: true
     },
@@ -214,21 +214,21 @@ const mockChats: Chat[] = [
         id: 'msg-3-1',
         senderId: 'user-2',
         text: 'Has everyone reviewed the proposal?',
-        timestamp: '2023-06-15T11:50:00Z',
+        timestamp: '2025-06-15T11:50:00Z',
         status: 'read'
       },
       {
         id: 'msg-3-2',
         senderId: 'user-3',
         text: 'Yes, I have a few suggestions for section 3.',
-        timestamp: '2023-06-15T12:00:00Z',
+        timestamp: '2025-06-15T12:00:00Z',
         status: 'read'
       },
       {
         id: 'msg-3-3',
         senderId: 'user-4',
         text: 'I\'ll send the revised proposal tomorrow.',
-        timestamp: '2023-06-15T12:10:00Z',
+        timestamp: '2025-06-15T12:10:00Z',
         status: 'delivered'
       }
     ]
@@ -255,7 +255,7 @@ const mockChats: Chat[] = [
     ],
     lastMessage: {
       text: 'Meeting at 3PM tomorrow in Room 302',
-      timestamp: '2023-06-14T16:20:00Z',
+      timestamp: '2025-06-14T16:20:00Z',
       senderId: 'user-5',
       unread: false
     },
@@ -264,21 +264,21 @@ const mockChats: Chat[] = [
         id: 'msg-4-1',
         senderId: 'user-1',
         text: 'When are we meeting next?',
-        timestamp: '2023-06-14T15:40:00Z',
+        timestamp: '2025-06-14T15:40:00Z',
         status: 'read'
       },
       {
         id: 'msg-4-2',
         senderId: 'user-6',
         text: 'I\'m free tomorrow afternoon.',
-        timestamp: '2023-06-14T16:00:00Z',
+        timestamp: '2025-06-14T16:00:00Z',
         status: 'read'
       },
       {
         id: 'msg-4-3',
         senderId: 'user-5',
         text: 'Meeting at 3PM tomorrow in Room 302',
-        timestamp: '2023-06-14T16:20:00Z',
+        timestamp: '2025-06-14T16:20:00Z',
         status: 'read'
       }
     ]

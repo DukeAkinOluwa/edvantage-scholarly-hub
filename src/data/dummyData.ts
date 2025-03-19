@@ -112,7 +112,7 @@ export const tasks: Task[] = [
     id: 'task-1',
     title: 'Complete Data Structures Assignment',
     description: 'Implement a binary search tree and submit the code.',
-    dueDate: '2023-06-10T23:59:59',
+    dueDate: '2025-06-10T23:59:59',
     priority: 'high',
     status: 'completed',
     category: 'Computer Science',
@@ -122,7 +122,7 @@ export const tasks: Task[] = [
     id: 'task-2',
     title: 'Read Chapter 5 for Economics',
     description: 'Focus on the part about market structures.',
-    dueDate: '2023-06-12T18:00:00',
+    dueDate: '2025-06-12T18:00:00',
     priority: 'medium',
     status: 'pending',
     category: 'Economics',
@@ -132,7 +132,7 @@ export const tasks: Task[] = [
     id: 'task-3',
     title: 'Prepare for Statistics Midterm',
     description: 'Review chapters 1-3, focus on probability distributions.',
-    dueDate: '2023-06-15T10:00:00',
+    dueDate: '2025-06-15T10:00:00',
     priority: 'high',
     status: 'in-progress',
     category: 'Statistics',
@@ -142,7 +142,7 @@ export const tasks: Task[] = [
     id: 'task-4',
     title: 'Complete Lab Report',
     description: 'Write up the findings from the physics experiment.',
-    dueDate: '2023-06-08T23:59:59',
+    dueDate: '2025-06-08T23:59:59',
     priority: 'medium',
     status: 'overdue',
     category: 'Physics',
@@ -152,7 +152,7 @@ export const tasks: Task[] = [
     id: 'task-5',
     title: 'Submit Research Topic Proposal',
     description: 'Finalize the research topic and submit a 2-page proposal.',
-    dueDate: '2023-06-20T12:00:00',
+    dueDate: '2025-06-20T12:00:00',
     priority: 'low',
     status: 'pending',
     category: 'Research Methods',
@@ -165,8 +165,8 @@ export const events: Event[] = [
     id: 'event-1',
     title: 'Data Structures Lecture',
     description: 'Weekly lecture covering advanced tree structures.',
-    startDate: '2023-06-09T10:00:00',
-    endDate: '2023-06-09T12:00:00',
+    startDate: '2025-06-09T10:00:00',
+    endDate: '2025-06-09T12:00:00',
     location: 'Room 301, CS Building',
     type: 'class'
   },
@@ -174,8 +174,8 @@ export const events: Event[] = [
     id: 'event-2',
     title: 'Statistics Midterm Exam',
     description: 'Covers chapters 1-3, bring a calculator.',
-    startDate: '2023-06-15T09:00:00',
-    endDate: '2023-06-15T11:00:00',
+    startDate: '2025-06-15T09:00:00',
+    endDate: '2025-06-15T11:00:00',
     location: 'Exam Hall 2',
     type: 'exam'
   },
@@ -183,8 +183,8 @@ export const events: Event[] = [
     id: 'event-3',
     title: 'Study Group: Economics',
     description: 'Discussing market structures from Chapter 5.',
-    startDate: '2023-06-11T15:00:00',
-    endDate: '2023-06-11T17:00:00',
+    startDate: '2025-06-11T15:00:00',
+    endDate: '2025-06-11T17:00:00',
     location: 'Library Study Room 4',
     type: 'study'
   },
@@ -192,8 +192,8 @@ export const events: Event[] = [
     id: 'event-4',
     title: 'Project Team Meeting',
     description: 'Discussing progress on the final project.',
-    startDate: '2023-06-10T16:00:00',
-    endDate: '2023-06-10T17:30:00',
+    startDate: '2025-06-10T16:00:00',
+    endDate: '2025-06-10T17:30:00',
     location: 'Online (Zoom)',
     type: 'group'
   },
@@ -201,8 +201,8 @@ export const events: Event[] = [
     id: 'event-5',
     title: 'Department Seminar',
     description: 'Guest speaker from Google discussing AI applications.',
-    startDate: '2023-06-14T14:00:00',
-    endDate: '2023-06-14T16:00:00',
+    startDate: '2025-06-14T14:00:00',
+    endDate: '2025-06-14T16:00:00',
     location: 'Main Auditorium',
     type: 'class'
   }
@@ -214,7 +214,7 @@ export const groups: Group[] = [
     name: 'CS 301 Study Group',
     description: 'For students taking Data Structures and Algorithms this semester.',
     type: 'study',
-    createdAt: '2023-04-15T10:00:00',
+    createdAt: '2025-04-15T10:00:00',
     members: [
       {
         id: 'user-1',
@@ -242,7 +242,7 @@ export const groups: Group[] = [
     name: 'Computer Science 300 Level',
     description: 'Official group for all 300 level Computer Science students.',
     type: 'class',
-    createdAt: '2023-03-01T08:30:00',
+    createdAt: '2025-03-01T08:30:00',
     members: [
       {
         id: 'user-4',
@@ -270,7 +270,7 @@ export const groups: Group[] = [
     name: 'Final Year Project Team',
     description: 'Group for coordinating our final year project on machine learning.',
     type: 'project',
-    createdAt: '2023-05-10T14:15:00',
+    createdAt: '2025-05-10T14:15:00',
     members: [
       {
         id: 'user-1',
@@ -303,7 +303,7 @@ export const resources: Resource[] = [
     type: 'pdf',
     url: '#',
     uploadedBy: 'Dr. Smith',
-    uploadedAt: '2023-05-20T10:15:00',
+    uploadedAt: '2025-05-20T10:15:00',
     category: 'Computer Science',
     likes: 125,
     downloads: 78
@@ -315,7 +315,7 @@ export const resources: Resource[] = [
     type: 'video',
     url: '#',
     uploadedBy: 'Prof. Johnson',
-    uploadedAt: '2023-05-18T14:30:00',
+    uploadedAt: '2025-05-18T14:30:00',
     category: 'Statistics',
     likes: 89,
     downloads: 42
@@ -327,7 +327,7 @@ export const resources: Resource[] = [
     type: 'note',
     url: '#',
     uploadedBy: 'Jane Smith',
-    uploadedAt: '2023-06-02T09:45:00',
+    uploadedAt: '2025-06-02T09:45:00',
     category: 'Economics',
     likes: 56,
     downloads: 31
@@ -339,7 +339,7 @@ export const resources: Resource[] = [
     type: 'pdf',
     url: '#',
     uploadedBy: 'Lab Instructor',
-    uploadedAt: '2023-04-10T11:20:00',
+    uploadedAt: '2025-04-10T11:20:00',
     category: 'Physics',
     likes: 102,
     downloads: 67
@@ -351,7 +351,7 @@ export const resources: Resource[] = [
     type: 'link',
     url: 'https://example.com/research-methods',
     uploadedBy: 'Dr. Williams',
-    uploadedAt: '2023-05-25T15:10:00',
+    uploadedAt: '2025-05-25T15:10:00',
     category: 'Research Methods',
     likes: 45,
     downloads: 0
@@ -364,7 +364,7 @@ export const notifications: Notification[] = [
     type: 'task',
     title: 'Task Due Soon',
     message: 'Your "Data Structures Assignment" is due in 2 days.',
-    time: '2023-06-08T09:00:00',
+    time: '2025-06-08T09:00:00',
     read: false,
     actionUrl: '/dashboard/tasks'
   },
@@ -373,7 +373,7 @@ export const notifications: Notification[] = [
     type: 'event',
     title: 'Upcoming Exam',
     message: 'Statistics Midterm Exam is scheduled for tomorrow at 9:00 AM.',
-    time: '2023-06-14T18:30:00',
+    time: '2025-06-14T18:30:00',
     read: true,
     actionUrl: '/dashboard/calendar'
   },
@@ -382,7 +382,7 @@ export const notifications: Notification[] = [
     type: 'group',
     title: 'New Group Member',
     message: 'Alex Wu has joined "CS 301 Study Group".',
-    time: '2023-06-07T14:15:00',
+    time: '2025-06-07T14:15:00',
     read: false,
     actionUrl: '/dashboard/groups/group-1'
   },
@@ -391,7 +391,7 @@ export const notifications: Notification[] = [
     type: 'message',
     title: 'New Message',
     message: 'Sarah Johnson sent you a message about the project meeting.',
-    time: '2023-06-08T11:40:00',
+    time: '2025-06-08T11:40:00',
     read: false,
     actionUrl: '/dashboard/messages'
   },
@@ -400,7 +400,7 @@ export const notifications: Notification[] = [
     type: 'achievement',
     title: 'Achievement Unlocked',
     message: 'Congratulations! You\'ve earned the "Task Master" badge.',
-    time: '2023-06-07T20:05:00',
+    time: '2025-06-07T20:05:00',
     read: true,
     actionUrl: '/dashboard/achievements'
   }
@@ -412,7 +412,7 @@ export const achievements: Achievement[] = [
     title: 'Early Bird',
     description: 'Complete 5 tasks before their due date.',
     icon: '🌅',
-    earnedAt: '2023-05-15T08:20:00',
+    earnedAt: '2025-05-15T08:20:00',
     points: 50,
     progress: 5,
     maxProgress: 5
@@ -422,7 +422,7 @@ export const achievements: Achievement[] = [
     title: 'Task Master',
     description: 'Complete 20 tasks in total.',
     icon: '✅',
-    earnedAt: '2023-06-07T20:05:00',
+    earnedAt: '2025-06-07T20:05:00',
     points: 100,
     progress: 20,
     maxProgress: 20

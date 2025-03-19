@@ -71,7 +71,7 @@ const RECENT_ACTIVITIES = [
     id: 'act-5',
     action: 'Resource uploaded',
     timestamp: '3 days ago',
-    details: 'University calendar for 2023/2024 academic session',
+    details: 'University calendar for 2025/2024 academic session',
   },
 ];
 

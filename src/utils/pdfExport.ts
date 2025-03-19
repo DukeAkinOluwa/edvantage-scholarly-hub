@@ -119,7 +119,7 @@ export const collectUserData = async (userId: string): Promise<UserDataForExport
       university: 'University of Lagos',
       department: 'Computer Science',
       level: '300 Level',
-      joinedAt: '2023-05-01',
+      joinedAt: '2025-05-01',
     },
     statistics,
     achievements,

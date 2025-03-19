@@ -35,7 +35,7 @@ const DEMO_USER: User = {
   university: "University of Lagos",
   department: "Computer Science",
   level: "300 Level",
-  joinedAt: "2023-05-01",
+  joinedAt: "2024-05-01",
   isNewUser: false,
   accountType: "student"
 };

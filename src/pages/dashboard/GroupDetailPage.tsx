@@ -37,7 +37,7 @@ const mockMessages: Message[] = [
     senderName: 'Jane Smith',
     senderAvatar: 'https://i.pravatar.cc/150?img=2',
     content: 'Hey everyone! I created a study schedule for our upcoming test. Check it out!',
-    timestamp: '2023-06-08T10:30:00',
+    timestamp: '2025-06-08T10:30:00',
     attachments: [
       {
         name: 'study_schedule.pdf',
@@ -52,7 +52,7 @@ const mockMessages: Message[] = [
     senderName: 'Michael Johnson',
     senderAvatar: 'https://i.pravatar.cc/150?img=3',
     content: 'Thanks Jane! This is really helpful. Should we meet in the library tomorrow to go through the material together?',
-    timestamp: '2023-06-08T10:45:00'
+    timestamp: '2025-06-08T10:45:00'
   },
   {
     id: 'msg-3',
@@ -60,7 +60,7 @@ const mockMessages: Message[] = [
     senderName: 'John Doe',
     senderAvatar: 'https://i.pravatar.cc/150?img=1',
     content: "That's a great idea Michael. I'm available after 2 PM. How about we meet at the main library, 2nd floor?",
-    timestamp: '2023-06-08T11:15:00'
+    timestamp: '2025-06-08T11:15:00'
   },
   {
     id: 'msg-4',
@@ -68,7 +68,7 @@ const mockMessages: Message[] = [
     senderName: 'Jane Smith',
     senderAvatar: 'https://i.pravatar.cc/150?img=2',
     content: "2 PM works for me too! I've also found some helpful resources on binary trees that we should go through.",
-    timestamp: '2023-06-08T11:30:00',
+    timestamp: '2025-06-08T11:30:00',
     attachments: [
       {
         name: 'binary_trees_explained.pdf',
@@ -90,7 +90,7 @@ const mockGroupTasks: Task[] = [
     id: 'grouptask-1',
     title: 'Review Chapter 5',
     description: 'Everyone should read and take notes on Chapter 5 for discussion.',
-    dueDate: '2023-06-12T23:59:59',
+    dueDate: '2025-06-12T23:59:59',
     priority: 'high',
     status: 'in-progress',
     category: 'Reading',
@@ -100,7 +100,7 @@ const mockGroupTasks: Task[] = [
     id: 'grouptask-2',
     title: 'Solve Practice Problems',
     description: 'Complete the practice problems 1-10 from the textbook.',
-    dueDate: '2023-06-15T23:59:59',
+    dueDate: '2025-06-15T23:59:59',
     priority: 'medium',
     status: 'pending',
     category: 'Homework',
@@ -110,7 +110,7 @@ const mockGroupTasks: Task[] = [
     id: 'grouptask-3',
     title: 'Prepare Study Guide',
     description: 'Collaborate on creating a comprehensive study guide for the exam.',
-    dueDate: '2023-06-18T23:59:59',
+    dueDate: '2025-06-18T23:59:59',
     priority: 'high',
     status: 'pending',
     category: 'Exam Prep',
