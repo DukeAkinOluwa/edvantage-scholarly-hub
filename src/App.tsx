@@ -25,6 +25,9 @@ import GroupsPage from './pages/dashboard/GroupsPage';
 import GroupDetailPage from './pages/dashboard/GroupDetailPage';
 import NotificationsPage from './pages/dashboard/NotificationsPage';
 import ChatsPage from './pages/dashboard/ChatsPage';
+import ProfilePage from './pages/dashboard/ProfilePage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import SchoolDashboard from './pages/admin/SchoolDashboard';
 import { AchievementProvider } from './contexts/AchievementContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
@@ -66,7 +69,21 @@ function App() {
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="chats" element={<ChatsPage />} />
+                <Route path="profile" element={<ProfilePage />} />
               </Route>
+              
+              {/* Admin and School Dashboards */}
+              <Route path="/admin" element={
+                <ProtectedRoute allowedAccountTypes={['organization']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/school-admin" element={
+                <ProtectedRoute allowedAccountTypes={['organization']}>
+                  <SchoolDashboard />
+                </ProtectedRoute>
+              } />
               
               {/* Catch-all Route */}
               <Route path="*" element={<NotFound />} />

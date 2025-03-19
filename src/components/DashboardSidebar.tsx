@@ -1,16 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Calendar, BookOpen, Users, Briefcase, 
   Brain, Award, Bell, Settings, LogOut,
   Menu, X, ChevronRight, Home, Download,
-  Sun, Moon
+  Sun, Moon, User, MessageCircle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { collectUserData, generateUserDataPDF } from '@/utils/pdfExport';
 
 type SidebarLink = {
   title: string;
@@ -26,16 +26,16 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
-    // Check if dark mode is enabled
     const isDark = document.documentElement.classList.contains('dark');
     setIsDarkMode(isDark);
     
-    // Add event listener for window resize
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setIsCollapsed(false);
@@ -54,6 +54,7 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
     { title: 'Projects', icon: Briefcase, path: '/dashboard/projects' },
     { title: 'AI Study Support', icon: Brain, path: '/dashboard/ai-support' },
     { title: 'Achievements', icon: Award, path: '/dashboard/achievements' },
+    { title: 'Chats', icon: MessageCircle, path: '/dashboard/chats' },
     { title: 'Notifications', icon: Bell, path: '/dashboard/notifications' },
     { title: 'Settings', icon: Settings, path: '/dashboard/settings' },
   ];
@@ -64,13 +65,13 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
       title: "Logged out",
       description: "You have been successfully logged out.",
     });
+    navigate('/login');
   };
 
   const toggleSidebar = () => {
     const newCollapsedState = !isCollapsed;
     setIsCollapsed(newCollapsedState);
     
-    // Notify parent component if callback is provided
     if (onToggleCollapse) {
       onToggleCollapse(newCollapsedState);
     }
@@ -91,28 +92,47 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
     setIsDarkMode(!isDarkMode);
   };
 
-  const downloadUserData = () => {
+  const downloadUserData = async () => {
+    if (!user || isExporting) return;
+    
+    setIsExporting(true);
     toast({
       title: "Data Export",
       description: "Your data is being prepared for download. This may take a moment.",
     });
     
-    // Simulate PDF generation with timeout
-    setTimeout(() => {
+    try {
+      const userData = await collectUserData(user.id);
+      const pdfUrl = await generateUserDataPDF(userData);
+      
       toast({
         title: "Data Ready",
         description: "Your data has been prepared and is downloading now.",
       });
       
-      // This would normally generate and provide a real PDF, we're just simulating for now
       const link = document.createElement('a');
-      link.href = '#';
+      link.href = pdfUrl;
       link.download = 'user-data-export.pdf';
       link.click();
-    }, 2000);
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting your data. Please try again.",
+        variant: "destructive"
+      });
+      console.error('Data export failed:', error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  // Render a sidebar link
+  const viewProfile = () => {
+    navigate('/dashboard/profile');
+    if (isMobileOpen) {
+      setIsMobileOpen(false);
+    }
+  };
+
   const renderLink = (link: SidebarLink) => {
     const isActive = location.pathname === link.path;
     const Icon = link.icon;
@@ -144,7 +164,6 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
     );
   };
 
-  // Main content of the sidebar
   const sidebarContent = (
     <>
       <div className="flex items-center justify-between px-4 py-5">
@@ -162,7 +181,7 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <ChevronRight
-            className={`h-5 w-5 transition-transform ${isCollapsed ? 'rotate-180' : ''}`}
+            className={`h-5 w-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}
           />
         </Button>
         
@@ -179,7 +198,10 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
       
       {!isCollapsed && (
         <div className="px-4 pb-4">
-          <div className="flex items-center space-x-3">
+          <div 
+            className="flex items-center space-x-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            onClick={viewProfile}
+          >
             <div className="h-10 w-10 rounded-full bg-edvantage-blue dark:bg-edvantage-blue/80 flex items-center justify-center text-white font-medium">
               {user?.name.charAt(0)}
             </div>
@@ -195,8 +217,26 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
         {links.map(renderLink)}
       </div>
       
-      <div className="mt-auto px-2 pb-2 space-y-1">
-        {/* Dark Mode Toggle */}
+      <div className="mt-auto px-2 pb-4 pt-4 space-y-1">
+        {isCollapsed && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-center"
+                  onClick={viewProfile}
+                >
+                  <User size={20} className="text-edvantage-blue dark:text-edvantage-light-blue" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                View Profile
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -223,7 +263,6 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
           </Tooltip>
         </TooltipProvider>
         
-        {/* Download User Data */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -233,9 +272,10 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
                   isCollapsed ? 'px-0 justify-center' : 'px-4'
                 }`}
                 onClick={downloadUserData}
+                disabled={isExporting}
               >
                 <Download size={20} className={`text-edvantage-blue dark:text-edvantage-light-blue ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                {!isCollapsed && <span>Export My Data</span>}
+                {!isCollapsed && <span>{isExporting ? 'Exporting...' : 'Export My Data'}</span>}
               </Button>
             </TooltipTrigger>
             {isCollapsed && (
@@ -246,7 +286,6 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
           </Tooltip>
         </TooltipProvider>
         
-        {/* Logout button */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -272,7 +311,6 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
     </>
   );
 
-  // Mobile sidebar toggle button (visible when sidebar is closed)
   const mobileToggle = (
     <Button
       variant="outline"
@@ -287,16 +325,14 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
 
   return (
     <>
-      {/* Desktop sidebar */}
       <div
-        className={`fixed top-0 left-0 bottom-0 z-30 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all md:translate-x-0 ${
+        className={`fixed top-0 left-0 bottom-0 z-30 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 ease-in-out md:translate-x-0 ${
           isCollapsed ? 'w-16' : 'w-64'
         } ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
         {sidebarContent}
       </div>
       
-      {/* Overlay for mobile */}
       {isMobileOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
@@ -304,7 +340,6 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
         />
       )}
       
-      {/* Mobile toggle button */}
       {!isMobileOpen && mobileToggle}
     </>
   );
