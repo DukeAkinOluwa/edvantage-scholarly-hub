@@ -32,6 +32,8 @@ import { AchievementProvider } from './contexts/AchievementContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import './App.css';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 function App() {
   return (
@@ -40,13 +42,49 @@ function App() {
         <Router>
           <PageTransition>
             <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:postId" element={<BlogPost />} />
-              <Route path="/contact" element={<Contact />} />
+              {/* Public Routes with Navbar and Footer */}
+              <Route path="/" element={
+                <>
+                  <Navbar />
+                  <Index />
+                  <Footer />
+                </>
+              } />
+              <Route path="/about" element={
+                <>
+                  <Navbar />
+                  <About />
+                  <Footer />
+                </>
+              } />
+              <Route path="/team" element={
+                <>
+                  <Navbar />
+                  <Team />
+                  <Footer />
+                </>
+              } />
+              <Route path="/blog" element={
+                <>
+                  <Navbar />
+                  <Blog />
+                  <Footer />
+                </>
+              } />
+              <Route path="/blog/:postId" element={
+                <>
+                  <Navbar />
+                  <BlogPost />
+                  <Footer />
+                </>
+              } />
+              <Route path="/contact" element={
+                <>
+                  <Navbar />
+                  <Contact />
+                  <Footer />
+                </>
+              } />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/onboarding" element={<Onboarding />} />

@@ -24,7 +24,8 @@ import {
   Book,
   Briefcase,
   GraduationCap,
-  ThumbsUp
+  ThumbsUp,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';

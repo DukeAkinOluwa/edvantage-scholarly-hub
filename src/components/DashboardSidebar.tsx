@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -11,6 +12,10 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { collectUserData, generateUserDataPDF } from '@/utils/pdfExport';
+import { DashboardSidebarLink } from './sidebar/DashboardSidebarLink';
+import { DashboardSidebarAction } from './sidebar/DashboardSidebarAction';
+import { DashboardSidebarMobileToggle } from './sidebar/DashboardSidebarMobileToggle';
+import { DashboardSidebarProfile } from './sidebar/DashboardSidebarProfile';
 
 type SidebarLink = {
   title: string;
@@ -133,37 +138,6 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
     }
   };
 
-  const renderLink = (link: SidebarLink) => {
-    const isActive = location.pathname === link.path;
-    const Icon = link.icon;
-    
-    return (
-      <TooltipProvider key={link.path}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to={link.path}
-              className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                isActive 
-                  ? 'bg-edvantage-blue dark:bg-edvantage-blue/80 text-white' 
-                  : 'hover:bg-edvantage-light-blue dark:hover:bg-gray-800 text-edvantage-dark-gray dark:text-gray-300'
-              }`}
-              onClick={() => setIsMobileOpen(false)}
-            >
-              <Icon size={20} className={`flex-shrink-0 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-              {!isCollapsed && <span>{link.title}</span>}
-            </Link>
-          </TooltipTrigger>
-          {isCollapsed && (
-            <TooltipContent side="right">
-              {link.title}
-            </TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
-    );
-  };
-
   const sidebarContent = (
     <>
       <div className="flex items-center justify-between px-4 py-5">
@@ -197,130 +171,58 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
       </div>
       
       {!isCollapsed && (
-        <div className="px-4 pb-4">
-          <div 
-            className="flex items-center space-x-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            onClick={viewProfile}
-          >
-            <div className="h-10 w-10 rounded-full bg-edvantage-blue dark:bg-edvantage-blue/80 flex items-center justify-center text-white font-medium">
-              {user?.name.charAt(0)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium truncate">{user?.name}</h3>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-            </div>
-          </div>
-        </div>
+        <DashboardSidebarProfile user={user} onClick={viewProfile} />
       )}
       
       <div className="space-y-1 px-2 mt-2">
-        {links.map(renderLink)}
+        {links.map(link => (
+          <DashboardSidebarLink
+            key={link.path}
+            link={link}
+            isActive={location.pathname === link.path}
+            isCollapsed={isCollapsed}
+            onClick={() => setIsMobileOpen(false)}
+          />
+        ))}
       </div>
       
       <div className="mt-auto px-2 pb-4 pt-4 space-y-1">
         {isCollapsed && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-center"
-                  onClick={viewProfile}
-                >
-                  <User size={20} className="text-edvantage-blue dark:text-edvantage-light-blue" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                View Profile
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <DashboardSidebarAction
+            icon={User}
+            label="View Profile"
+            isCollapsed={isCollapsed}
+            onClick={viewProfile}
+            className="text-edvantage-blue dark:text-edvantage-light-blue"
+          />
         )}
         
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                className={`w-full justify-start hover:bg-edvantage-light-blue dark:hover:bg-gray-800 ${
-                  isCollapsed ? 'px-0 justify-center' : 'px-4'
-                }`}
-                onClick={toggleDarkMode}
-              >
-                {isDarkMode ? (
-                  <Sun size={20} className={`text-yellow-400 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                ) : (
-                  <Moon size={20} className={`text-gray-500 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                )}
-                {!isCollapsed && <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>}
-              </Button>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">
-                {isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+        <DashboardSidebarAction
+          icon={isDarkMode ? Sun : Moon}
+          label={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+          isCollapsed={isCollapsed}
+          onClick={toggleDarkMode}
+          className={isDarkMode ? "text-yellow-400" : "text-gray-500"}
+        />
         
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                className={`w-full justify-start hover:bg-edvantage-light-blue dark:hover:bg-gray-800 ${
-                  isCollapsed ? 'px-0 justify-center' : 'px-4'
-                }`}
-                onClick={downloadUserData}
-                disabled={isExporting}
-              >
-                <Download size={20} className={`text-edvantage-blue dark:text-edvantage-light-blue ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                {!isCollapsed && <span>{isExporting ? 'Exporting...' : 'Export My Data'}</span>}
-              </Button>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">
-                Export My Data
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+        <DashboardSidebarAction
+          icon={Download}
+          label={isExporting ? 'Exporting...' : 'Export My Data'}
+          isCollapsed={isCollapsed}
+          onClick={downloadUserData}
+          disabled={isExporting}
+          className="text-edvantage-blue dark:text-edvantage-light-blue"
+        />
         
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                className={`w-full justify-start text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 ${
-                  isCollapsed ? 'px-0 justify-center' : 'px-4'
-                }`}
-                onClick={handleLogout}
-              >
-                <LogOut size={20} className={isCollapsed ? 'mx-auto' : 'mr-3'} />
-                {!isCollapsed && <span>Log Out</span>}
-              </Button>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">
-                Log Out
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+        <DashboardSidebarAction
+          icon={LogOut}
+          label="Log Out"
+          isCollapsed={isCollapsed}
+          onClick={handleLogout}
+          className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
+        />
       </div>
     </>
-  );
-
-  const mobileToggle = (
-    <Button
-      variant="outline"
-      size="icon"
-      className="fixed bottom-4 right-4 z-20 md:hidden bg-white dark:bg-gray-800 shadow-lg rounded-full h-12 w-12"
-      onClick={toggleMobileSidebar}
-      aria-label="Open sidebar"
-    >
-      <Menu className="h-6 w-6" />
-    </Button>
   );
 
   return (
@@ -340,7 +242,7 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
         />
       )}
       
-      {!isMobileOpen && mobileToggle}
+      {!isMobileOpen && <DashboardSidebarMobileToggle onClick={toggleMobileSidebar} />}
     </>
   );
 };
