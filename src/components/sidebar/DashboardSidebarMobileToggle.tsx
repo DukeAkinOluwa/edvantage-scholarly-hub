@@ -14,7 +14,7 @@ export const DashboardSidebarMobileToggle: React.FC<DashboardSidebarMobileToggle
     <Button
       variant="outline"
       size="icon"
-      className="fixed bottom-4 right-4 z-20 md:hidden bg-white dark:bg-gray-800 shadow-lg rounded-full h-12 w-12"
+      className="fixed bottom-4 right-4 z-40 md:hidden bg-white dark:bg-gray-800 shadow-lg rounded-full h-12 w-12 transition-transform hover:scale-105"
       onClick={onClick}
       aria-label="Open sidebar"
     >

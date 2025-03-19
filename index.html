@@ -1,34 +1,19 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#2563EB" />
-    <meta name="description" content="Edvantage - Educational platform for students and institutions" />
-    <link rel="apple-touch-icon" href="/Images/edvantagewebicon.jpg" />
+    <title>Edvantage Space</title>
+    <meta name="description" content="Collaborative learning platform for Nigerian students">
     <link rel="manifest" href="/manifest.json" />
-    <title>Edvantage - Scholarly Hub</title>
-    <meta property="og:title" content="Edvantage - Scholarly Hub" />
-    <meta property="og:description" content="Educational platform for students and institutions" />
-    <meta property="og:image" content="/og-image.png" />
+    <meta name="theme-color" content="#1E40AF" />
+    <link rel="apple-touch-icon" href="/edvantagewebicon-192.png">
   </head>
   <body>
     <div id="root"></div>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then((registration) => {
-              console.log('ServiceWorker registered: ', registration);
-            })
-            .catch((error) => {
-              console.log('ServiceWorker registration failed: ', error);
-            });
-        });
-      }
-    </script>
   </body>
 </html>
