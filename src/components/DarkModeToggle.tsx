@@ -3,7 +3,15 @@ import React, { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from './ui/button';
 
-const DarkModeToggle: React.FC = () => {
+interface DarkModeToggleProps {
+  variant?: 'icon' | 'switch' | 'button';
+  onToggle?: (isDark: boolean) => void;
+}
+
+const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ 
+  variant = 'icon',
+  onToggle 
+}) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
@@ -11,23 +19,72 @@ const DarkModeToggle: React.FC = () => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    if (shouldBeDark) {
       setIsDarkMode(true);
       document.documentElement.classList.add('dark');
     }
   }, []);
 
   const toggleDarkMode = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    } else {
+    const newMode = !isDarkMode;
+    if (newMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
-    setIsDarkMode(!isDarkMode);
+    setIsDarkMode(newMode);
+    
+    if (onToggle) {
+      onToggle(newMode);
+    }
   };
 
+  if (variant === 'switch') {
+    return (
+      <div 
+        className={`dark-mode-toggle ${isDarkMode ? 'dark' : ''}`}
+        onClick={toggleDarkMode}
+        role="switch"
+        aria-checked={isDarkMode}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleDarkMode();
+          }
+        }}
+      >
+        <div className="dark-mode-toggle-handle" />
+      </div>
+    );
+  }
+  
+  if (variant === 'button') {
+    return (
+      <Button
+        onClick={toggleDarkMode}
+        className="flex items-center gap-2"
+      >
+        {isDarkMode ? (
+          <>
+            <Sun className="h-5 w-5" />
+            <span>Light Mode</span>
+          </>
+        ) : (
+          <>
+            <Moon className="h-5 w-5" />
+            <span>Dark Mode</span>
+          </>
+        )}
+      </Button>
+    );
+  }
+
+  // Default icon variant
   return (
     <Button
       variant="ghost"

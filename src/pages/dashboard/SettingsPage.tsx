@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Bell, User, Lock, LogOut, Moon, Sun, Globe, Shield, Trash2, Download } from 'lucide-react';
+import { Bell, User, Lock, LogOut, Moon, Sun, Globe, Shield, Trash2, Download, Check } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -28,11 +28,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import DarkModeToggle from '@/components/DarkModeToggle';
 
 const SettingsPage = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   
   // User profile state
   const [profileData, setProfileData] = useState({
@@ -56,7 +58,7 @@ const SettingsPage = () => {
   
   // Theme settings state
   const [themeSettings, setThemeSettings] = useState({
-    theme: 'light',
+    theme: localStorage.getItem('theme') || 'light',
     language: 'english',
   });
   
@@ -89,6 +91,27 @@ const SettingsPage = () => {
     setPrivacySettings(prev => ({
       ...prev,
       [field]: !prev[field as keyof typeof privacySettings],
+    }));
+  };
+  
+  // Handle theme change
+  const handleDarkModeToggle = (isDark: boolean) => {
+    setThemeSettings(prev => ({
+      ...prev,
+      theme: isDark ? 'dark' : 'light'
+    }));
+    
+    toast({
+      title: `${isDark ? 'Dark' : 'Light'} mode activated`,
+      description: `Interface has been switched to ${isDark ? 'dark' : 'light'} mode.`,
+    });
+  };
+  
+  // Handle language change
+  const handleLanguageChange = (value: string) => {
+    setThemeSettings(prev => ({
+      ...prev,
+      language: value
     }));
   };
   
@@ -139,6 +162,82 @@ const SettingsPage = () => {
       description: "Your account will be scheduled for deletion. You will receive a confirmation email shortly.",
       variant: "destructive",
     });
+  };
+  
+  // Handle data export
+  const requestDataExport = () => {
+    setIsExporting(true);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      setIsExporting(false);
+      
+      const dummyUserData = {
+        user: {
+          id: "user-123",
+          name: profileData.name,
+          email: profileData.email,
+          university: profileData.university,
+          department: profileData.department,
+          level: profileData.level,
+          bio: profileData.bio,
+          joinDate: "2024-01-15",
+        },
+        projects: [
+          {
+            id: "project-1",
+            title: "Advanced Machine Learning Research",
+            description: "Research project on implementing advanced ML algorithms",
+            status: "in-progress",
+            progress: 45,
+          },
+          {
+            id: "project-2",
+            title: "Interactive Learning Platform",
+            description: "Developing an interactive learning platform",
+            status: "in-progress",
+            progress: 70,
+          }
+        ],
+        tasks: [
+          {
+            id: "task-1",
+            title: "Literature review",
+            completed: true,
+            dueDate: "2024-03-15",
+          },
+          {
+            id: "task-2",
+            title: "Data collection",
+            completed: true,
+            dueDate: "2024-04-01",
+          }
+        ],
+        settings: {
+          notifications: notificationSettings,
+          privacy: privacySettings,
+          theme: themeSettings,
+        }
+      };
+      
+      // Create a JSON file for download
+      const dataStr = JSON.stringify(dummyUserData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      // Create a link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `edvantage-user-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Data export complete",
+        description: "Your data has been exported successfully.",
+      });
+    }, 2000);
   };
   
   // Handle logout
@@ -457,25 +556,49 @@ const SettingsPage = () => {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="theme" className="mb-2 inline-block">Theme</Label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div
-                      className={`border rounded-lg p-3 flex items-center cursor-pointer ${
-                        themeSettings.theme === 'light' ? 'border-edvantage-blue bg-edvantage-light-blue' : ''
+                      className={`border rounded-lg p-4 flex items-center justify-between cursor-pointer hover:bg-secondary transition-colors ${
+                        themeSettings.theme === 'light' ? 'border-edvantage-blue bg-secondary' : ''
                       }`}
-                      onClick={() => setThemeSettings(prev => ({ ...prev, theme: 'light' }))}
                     >
-                      <Sun className="h-5 w-5 mr-2" />
-                      <span>Light</span>
+                      <div className="flex items-center">
+                        <Sun className="h-5 w-5 mr-3 text-yellow-500" />
+                        <div>
+                          <p className="font-medium">Light Mode</p>
+                          <p className="text-sm text-muted-foreground">Light background with dark text</p>
+                        </div>
+                      </div>
+                      {themeSettings.theme === 'light' && (
+                        <div className="h-6 w-6 rounded-full bg-edvantage-blue flex items-center justify-center">
+                          <Check className="h-4 w-4 text-white" />
+                        </div>
+                      )}
                     </div>
+                    
                     <div
-                      className={`border rounded-lg p-3 flex items-center cursor-pointer ${
-                        themeSettings.theme === 'dark' ? 'border-edvantage-blue bg-edvantage-light-blue' : ''
+                      className={`border rounded-lg p-4 flex items-center justify-between cursor-pointer hover:bg-secondary transition-colors ${
+                        themeSettings.theme === 'dark' ? 'border-edvantage-blue bg-secondary' : ''
                       }`}
-                      onClick={() => setThemeSettings(prev => ({ ...prev, theme: 'dark' }))}
                     >
-                      <Moon className="h-5 w-5 mr-2" />
-                      <span>Dark</span>
+                      <div className="flex items-center">
+                        <Moon className="h-5 w-5 mr-3 text-blue-400" />
+                        <div>
+                          <p className="font-medium">Dark Mode</p>
+                          <p className="text-sm text-muted-foreground">Dark background with light text</p>
+                        </div>
+                      </div>
+                      {themeSettings.theme === 'dark' && (
+                        <div className="h-6 w-6 rounded-full bg-edvantage-blue flex items-center justify-center">
+                          <Check className="h-4 w-4 text-white" />
+                        </div>
+                      )}
                     </div>
+                  </div>
+                  
+                  <div className="mt-6 flex items-center justify-between">
+                    <Label htmlFor="themeToggle">Toggle Theme</Label>
+                    <DarkModeToggle variant="switch" onToggle={handleDarkModeToggle} />
                   </div>
                 </div>
                 
@@ -485,7 +608,7 @@ const SettingsPage = () => {
                   <Label htmlFor="language" className="mb-2 inline-block">Language</Label>
                   <Select 
                     value={themeSettings.language}
-                    onValueChange={(value) => setThemeSettings(prev => ({ ...prev, language: value }))}
+                    onValueChange={handleLanguageChange}
                   >
                     <SelectTrigger id="language" className="w-full">
                       <SelectValue placeholder="Select language" />
@@ -514,11 +637,11 @@ const SettingsPage = () => {
                 Control your privacy and data settings.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
+            <CardContent className="space-y-6">
+              <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="online-status">Show Online Status</Label>
+                    <Label htmlFor="online-status" className="text-base font-medium">Show Online Status</Label>
                     <p className="text-sm text-muted-foreground">
                       Allow others to see when you're active on the platform.
                     </p>
@@ -527,6 +650,7 @@ const SettingsPage = () => {
                     id="online-status"
                     checked={privacySettings.showOnlineStatus}
                     onCheckedChange={() => handlePrivacyToggle('showOnlineStatus')}
+                    className="scale-110"
                   />
                 </div>
                 
@@ -534,7 +658,7 @@ const SettingsPage = () => {
                 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="profile-visibility">Profile Visibility to Groups</Label>
+                    <Label htmlFor="profile-visibility" className="text-base font-medium">Profile Visibility to Groups</Label>
                     <p className="text-sm text-muted-foreground">
                       Allow group members to view your profile details.
                     </p>
@@ -543,6 +667,7 @@ const SettingsPage = () => {
                     id="profile-visibility"
                     checked={privacySettings.showProfileToGroups}
                     onCheckedChange={() => handlePrivacyToggle('showProfileToGroups')}
+                    className="scale-110"
                   />
                 </div>
                 
@@ -550,7 +675,7 @@ const SettingsPage = () => {
                 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="friend-requests">Allow Friend Requests</Label>
+                    <Label htmlFor="friend-requests" className="text-base font-medium">Allow Friend Requests</Label>
                     <p className="text-sm text-muted-foreground">
                       Allow others to send you friend or connection requests.
                     </p>
@@ -559,6 +684,7 @@ const SettingsPage = () => {
                     id="friend-requests"
                     checked={privacySettings.allowFriendRequests}
                     onCheckedChange={() => handlePrivacyToggle('allowFriendRequests')}
+                    className="scale-110"
                   />
                 </div>
                 
@@ -566,7 +692,7 @@ const SettingsPage = () => {
                 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="data-collection">Data Collection</Label>
+                    <Label htmlFor="data-collection" className="text-base font-medium">Data Collection</Label>
                     <p className="text-sm text-muted-foreground">
                       Allow us to collect anonymized usage data to improve the platform.
                     </p>
@@ -575,19 +701,34 @@ const SettingsPage = () => {
                     id="data-collection"
                     checked={privacySettings.dataCollection}
                     onCheckedChange={() => handlePrivacyToggle('dataCollection')}
+                    className="scale-110"
                   />
                 </div>
                 
                 <Separator />
                 
                 <div>
-                  <h3 className="font-medium">Data Export</h3>
-                  <p className="text-sm text-muted-foreground mt-1 mb-2">
+                  <h3 className="text-base font-medium mb-2">Data Export</h3>
+                  <p className="text-sm text-muted-foreground mt-1 mb-3">
                     Download a copy of all your data stored on Edvantage.
                   </p>
-                  <Button variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
-                    Request Data Export
+                  <Button 
+                    variant="outline" 
+                    onClick={requestDataExport} 
+                    disabled={isExporting}
+                    className="flex items-center gap-2"
+                  >
+                    {isExporting ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Preparing Data...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Your Data
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>

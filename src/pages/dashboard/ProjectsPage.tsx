@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
   Calendar, 
@@ -12,7 +12,13 @@ import {
   Search,
   Filter,
   SortAsc,
-  ExternalLink
+  ExternalLink,
+  UserPlus,
+  FolderOpen,
+  CalendarDays,
+  ChevronDown,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,13 +45,20 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 
-// Define project types
-type ProjectStatus = 'in-progress' | 'completed' | 'overdue' | 'planned';
-type ProjectPriority = 'high' | 'medium' | 'low';
+export type ProjectStatus = 'in-progress' | 'completed' | 'overdue' | 'planned';
+export type ProjectPriority = 'high' | 'medium' | 'low';
 
-interface Project {
+export interface Project {
   id: string;
   title: string;
   description: string;
@@ -58,14 +71,14 @@ interface Project {
   tasks: ProjectTask[];
 }
 
-interface TeamMember {
+export interface TeamMember {
   id: string;
   name: string;
   role: string;
   avatar: string;
 }
 
-interface ProjectTask {
+export interface ProjectTask {
   id: string;
   title: string;
   completed: boolean;
@@ -73,8 +86,7 @@ interface ProjectTask {
   dueDate?: string;
 }
 
-// Mock data for projects
-const mockProjects: Project[] = [
+export const mockProjects: Project[] = [
   {
     id: '1',
     title: 'Advanced Machine Learning Research',
@@ -249,37 +261,117 @@ const getPriorityColor = (priority: ProjectPriority): string => {
   }
 };
 
+const getPriorityOptions = [
+  { value: 'high', label: 'High Priority' },
+  { value: 'medium', label: 'Medium Priority' },
+  { value: 'low', label: 'Low Priority' },
+];
+
+const getStatusOptions = [
+  { value: 'all', label: 'All Projects' },
+  { value: 'in-progress', label: 'In Progress' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'overdue', label: 'Overdue' },
+  { value: 'planned', label: 'Planned' },
+];
+
 const ProjectsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [filterPriority, setFilterPriority] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string | null>(null);
   const [newProject, setNewProject] = useState({
     title: '',
     description: '',
-    dueDate: ''
+    dueDate: '',
+    priority: 'medium' as ProjectPriority,
+    tasks: [] as { title: string; dueDate?: string }[]
   });
   const { toast } = useToast();
 
-  // Filter projects based on search and tab
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          project.description.toLowerCase().includes(searchQuery.toLowerCase());
     
-    if (activeTab === 'all') return matchesSearch;
-    if (activeTab === 'in-progress') return matchesSearch && project.status === 'in-progress';
-    if (activeTab === 'completed') return matchesSearch && project.status === 'completed';
-    if (activeTab === 'overdue') return matchesSearch && project.status === 'overdue';
-    if (activeTab === 'planned') return matchesSearch && project.status === 'planned';
+    const matchesStatus = activeTab === 'all' || project.status === activeTab;
     
-    return matchesSearch;
+    const matchesPriority = !filterPriority || project.priority === filterPriority;
+    
+    return matchesSearch && matchesStatus && matchesPriority;
   });
+
+  const sortedProjects = [...filteredProjects].sort((a, b) => {
+    if (!sortBy) return 0;
+    
+    switch (sortBy) {
+      case 'title-asc':
+        return a.title.localeCompare(b.title);
+      case 'title-desc':
+        return b.title.localeCompare(a.title);
+      case 'due-date-asc':
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      case 'due-date-desc':
+        return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+      case 'progress-asc':
+        return a.progress - b.progress;
+      case 'progress-desc':
+        return b.progress - a.progress;
+      default:
+        return 0;
+    }
+  });
+
+  const handleAddTaskToNewProject = () => {
+    setNewProject({
+      ...newProject,
+      tasks: [
+        ...newProject.tasks,
+        { title: '', dueDate: '' }
+      ]
+    });
+  };
+
+  const handleUpdateNewProjectTask = (index: number, field: string, value: string) => {
+    const updatedTasks = [...newProject.tasks];
+    updatedTasks[index] = {
+      ...updatedTasks[index],
+      [field]: value
+    };
+    
+    setNewProject({
+      ...newProject,
+      tasks: updatedTasks
+    });
+  };
+
+  const handleRemoveNewProjectTask = (index: number) => {
+    const updatedTasks = [...newProject.tasks];
+    updatedTasks.splice(index, 1);
+    
+    setNewProject({
+      ...newProject,
+      tasks: updatedTasks
+    });
+  };
 
   const handleCreateProject = () => {
     if (!newProject.title || !newProject.description || !newProject.dueDate) {
       toast({
         title: "Missing fields",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields for the project.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const hasEmptyTasks = newProject.tasks.some(task => !task.title);
+    if (hasEmptyTasks) {
+      toast({
+        title: "Empty tasks",
+        description: "Please provide a title for all tasks or remove empty ones.",
         variant: "destructive"
       });
       return;
@@ -293,30 +385,57 @@ const ProjectsPage: React.FC = () => {
       title: newProject.title,
       description: newProject.description,
       status: 'planned',
-      priority: 'medium',
+      priority: newProject.priority,
       progress: 0,
       startDate,
       dueDate: newProject.dueDate,
       team: [
         { id: 'user-1', name: 'John Doe', role: 'Creator', avatar: 'https://i.pravatar.cc/150?img=1' }
       ],
-      tasks: []
+      tasks: newProject.tasks.map((task, index) => ({
+        id: `task-${Date.now()}-${index}`,
+        title: task.title,
+        completed: false,
+        dueDate: task.dueDate
+      }))
     };
     
     setProjects([createdProject, ...projects]);
     
     toast({
       title: "Project created",
-      description: "Your new project has been created successfully."
+      description: `Your new project "${createdProject.title}" has been created successfully.${
+        createdProject.tasks.length ? ` Added ${createdProject.tasks.length} tasks.` : ''
+      }`
     });
     
     setNewProject({
       title: '',
       description: '',
-      dueDate: ''
+      dueDate: '',
+      priority: 'medium',
+      tasks: []
     });
     
     setIsCreateDialogOpen(false);
+  };
+
+  const handleOpenProject = (projectId: string) => {
+    navigate(`/dashboard/projects/${projectId}`);
+  };
+
+  const clearFilters = () => {
+    setFilterPriority(null);
+    setSortBy(null);
+    setSearchQuery('');
+  };
+  
+  const applySort = (sortValue: string) => {
+    setSortBy(sortValue);
+    toast({
+      title: "Sorting applied",
+      description: `Projects are now sorted by ${sortValue.replace('-', ' ')}`
+    });
   };
 
   return (
@@ -332,17 +451,17 @@ const ProjectsPage: React.FC = () => {
                 New Project
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
+            <DialogContent className="sm:max-w-[650px]">
               <DialogHeader>
                 <DialogTitle>Create New Project</DialogTitle>
                 <DialogDescription>
-                  Fill in the details to create a new project. You can add team members and tasks later.
+                  Fill in the details to create a new project. You can add tasks with deadlines now or later.
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="project-title">Project Title</Label>
+                  <Label htmlFor="project-title">Project Title <span className="text-red-500">*</span></Label>
                   <Input 
                     id="project-title" 
                     placeholder="Enter project title"
@@ -352,23 +471,98 @@ const ProjectsPage: React.FC = () => {
                 </div>
                 
                 <div className="grid gap-2">
-                  <Label htmlFor="project-description">Description</Label>
-                  <Input 
+                  <Label htmlFor="project-description">Description <span className="text-red-500">*</span></Label>
+                  <Textarea 
                     id="project-description" 
                     placeholder="Brief description of your project"
                     value={newProject.description}
                     onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+                    className="min-h-[80px]"
                   />
                 </div>
                 
-                <div className="grid gap-2">
-                  <Label htmlFor="project-due-date">Due Date</Label>
-                  <Input 
-                    id="project-due-date" 
-                    type="date"
-                    value={newProject.dueDate}
-                    onChange={(e) => setNewProject({...newProject, dueDate: e.target.value})}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="project-due-date">Due Date <span className="text-red-500">*</span></Label>
+                    <Input 
+                      id="project-due-date" 
+                      type="date"
+                      value={newProject.dueDate}
+                      onChange={(e) => setNewProject({...newProject, dueDate: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="project-priority">Priority</Label>
+                    <Select 
+                      value={newProject.priority}
+                      onValueChange={(value: ProjectPriority) => setNewProject({...newProject, priority: value})}
+                    >
+                      <SelectTrigger id="project-priority">
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="high">High Priority</SelectItem>
+                        <SelectItem value="medium">Medium Priority</SelectItem>
+                        <SelectItem value="low">Low Priority</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <Separator className="my-2" />
+                
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <Label className="text-base font-medium">Tasks</Label>
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddTaskToNewProject}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Task
+                    </Button>
+                  </div>
+                  
+                  {newProject.tasks.length === 0 ? (
+                    <div className="text-center py-6 bg-muted/30 rounded-md">
+                      <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground mb-2">No tasks added yet</p>
+                      <Button variant="outline" size="sm" onClick={handleAddTaskToNewProject}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add First Task
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {newProject.tasks.map((task, index) => (
+                        <div key={index} className="flex items-start gap-3 p-3 border rounded-md bg-muted/30">
+                          <div className="flex-1 grid gap-2">
+                            <Input 
+                              placeholder="Task title"
+                              value={task.title}
+                              onChange={(e) => handleUpdateNewProjectTask(index, 'title', e.target.value)}
+                            />
+                            <div className="flex items-center gap-2">
+                              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                              <Input 
+                                type="date"
+                                value={task.dueDate}
+                                onChange={(e) => handleUpdateNewProjectTask(index, 'dueDate', e.target.value)}
+                                className="flex-1"
+                              />
+                            </div>
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleRemoveNewProjectTask(index)}
+                          >
+                            <AlertCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -393,28 +587,115 @@ const ProjectsPage: React.FC = () => {
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" className="rounded-full">
-            <Filter className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" className="rounded-full">
-            <SortAsc className="h-4 w-4" />
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon" className="rounded-full relative">
+                <Filter className="h-4 w-4" />
+                {filterPriority && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 bg-edvantage-blue rounded-full" />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60" align="end">
+              <div className="space-y-4">
+                <h4 className="font-medium">Filter Projects</h4>
+                <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <Select 
+                    value={filterPriority || ''}
+                    onValueChange={(value) => setFilterPriority(value || null)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All priorities</SelectItem>
+                      <SelectItem value="high">High priority</SelectItem>
+                      <SelectItem value="medium">Medium priority</SelectItem>
+                      <SelectItem value="low">Low priority</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex justify-between">
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Clear Filters
+                  </Button>
+                  <Button size="sm">Apply</Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon" className="rounded-full relative">
+                <SortAsc className="h-4 w-4" />
+                {sortBy && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 bg-edvantage-blue rounded-full" />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60" align="end">
+              <div className="space-y-4">
+                <h4 className="font-medium">Sort Projects</h4>
+                <div className="space-y-2">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start px-2"
+                    onClick={() => applySort(sortBy === 'title-asc' ? 'title-desc' : 'title-asc')}
+                  >
+                    <span className="w-full flex items-center justify-between">
+                      Sort by title
+                      <SortAsc className={`h-4 w-4 ${sortBy?.includes('title') ? 'text-edvantage-blue' : ''}`} />
+                    </span>
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start px-2"
+                    onClick={() => applySort(sortBy === 'due-date-asc' ? 'due-date-desc' : 'due-date-asc')}
+                  >
+                    <span className="w-full flex items-center justify-between">
+                      Sort by due date
+                      <Calendar className={`h-4 w-4 ${sortBy?.includes('due-date') ? 'text-edvantage-blue' : ''}`} />
+                    </span>
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start px-2"
+                    onClick={() => applySort(sortBy === 'progress-asc' ? 'progress-desc' : 'progress-asc')}
+                  >
+                    <span className="w-full flex items-center justify-between">
+                      Sort by progress
+                      <Progress className={`h-2 w-12 ${sortBy?.includes('progress') ? 'bg-edvantage-blue' : ''}`} value={50} />
+                    </span>
+                  </Button>
+                </div>
+                
+                <Button variant="outline" size="sm" className="w-full" onClick={() => setSortBy(null)}>
+                  Clear Sort
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
-          <TabsTrigger value="all">All Projects</TabsTrigger>
-          <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue</TabsTrigger>
-          <TabsTrigger value="planned">Planned</TabsTrigger>
+          {getStatusOptions.map(option => (
+            <TabsTrigger key={option.value} value={option.value}>
+              {option.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
         
         <TabsContent value={activeTab}>
-          {filteredProjects.length > 0 ? (
+          {sortedProjects.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProjects.map(project => (
+              {sortedProjects.map(project => (
                 <Card key={project.id} className="flex flex-col h-full hover:shadow-md transition-shadow">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
@@ -427,19 +708,39 @@ const ProjectsPage: React.FC = () => {
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuLabel>Project Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
-                          <DropdownMenuItem>Edit Project</DropdownMenuItem>
-                          <DropdownMenuItem>Add Team Member</DropdownMenuItem>
-                          <DropdownMenuItem>Add Task</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleOpenProject(project.id)}>
+                            <FolderOpen className="mr-2 h-4 w-4" />
+                            <span>View Project</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Edit Project</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            <span>Add Team Member</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Plus className="mr-2 h-4 w-4" />
+                            <span>Add Task</span>
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-500">Delete Project</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-500">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete Project</span>
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                    <CardTitle className="text-lg mt-2">{project.title}</CardTitle>
+                    <CardTitle 
+                      className="text-lg mt-2 cursor-pointer hover:text-edvantage-blue transition-colors"
+                      onClick={() => handleOpenProject(project.id)}
+                    >
+                      {project.title}
+                    </CardTitle>
                     <CardDescription className="line-clamp-2">{project.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 flex flex-col justify-between">
@@ -492,7 +793,12 @@ const ProjectsPage: React.FC = () => {
                             {project.tasks.filter(task => task.completed).length}/{project.tasks.length} tasks
                           </span>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-700 p-0">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-blue-500 hover:text-blue-700 p-0"
+                          onClick={() => handleOpenProject(project.id)}
+                        >
                           <ExternalLink className="h-4 w-4 mr-1" />
                           <span>Details</span>
                         </Button>
@@ -507,13 +813,25 @@ const ProjectsPage: React.FC = () => {
               <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium">No projects found</h3>
               <p className="text-muted-foreground mt-1">
-                {searchQuery ? "Try changing your search query" : "Create your first project to get started"}
+                {searchQuery || filterPriority || sortBy ? 
+                  "Try changing your search or filter criteria" : 
+                  "Create your first project to get started"}
               </p>
-              {!searchQuery && (
+              
+              {(searchQuery || filterPriority || sortBy) ? (
+                <Button 
+                  className="mt-4" 
+                  variant="outline"
+                  onClick={clearFilters}
+                >
+                  Clear All Filters
+                </Button>
+              ) : (
                 <Button 
                   className="mt-4" 
                   onClick={() => setIsCreateDialogOpen(true)}
                 >
+                  <Plus className="h-4 w-4 mr-2" />
                   Create New Project
                 </Button>
               )}
