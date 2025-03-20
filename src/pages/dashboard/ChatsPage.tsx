@@ -1,846 +1,620 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Search, 
-  Send, 
-  Users, 
-  User, 
-  Plus, 
-  Phone, 
-  Video, 
-  MoreHorizontal, 
-  ArrowLeft, 
-  File, 
-  X 
-} from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import SharedResources from '@/components/chats/SharedResources';
+import { 
+  Search, 
+  Send, 
+  ArrowLeft, 
+  Plus, 
+  MoreVertical, 
+  Image, 
+  File, 
+  ThumbsUp, 
+  UserRound,
+  PanelRight
+} from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
 interface Message {
   id: string;
   content: string;
   senderId: string;
+  senderName: string;
   timestamp: string;
-  isRead: boolean;
+  status?: 'sending' | 'sent' | 'delivered' | 'read';
+  type?: 'text' | 'image' | 'file' | 'system';
+  reactionCount?: number;
 }
 
 interface Chat {
   id: string;
-  participantId: string;
-  participantName: string;
-  participantAvatar: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-  messages: Message[];
-}
-
-interface Group {
-  id: string;
   name: string;
-  avatar: string;
-  members: { id: string; name: string; avatar: string }[];
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
+  avatar?: string;
+  lastMessage?: string;
+  timestamp: string;
+  unread: number;
+  online?: boolean;
+  userId?: string;
+  messages: Message[];
+  typing?: boolean;
 }
 
+// Mock data for chats
 const mockChats: Chat[] = [
   {
     id: 'chat-1',
-    participantId: 'user-2',
-    participantName: 'Sarah Johnson',
-    participantAvatar: 'https://i.pravatar.cc/150?img=5',
-    lastMessage: 'Did you complete the assignment?',
-    lastMessageTime: '10:45 AM',
-    unreadCount: 2,
+    name: 'Sarah Johnson',
+    avatar: '/placeholder.svg',
+    lastMessage: 'Can you share the notes from yesterday?',
+    timestamp: '2025-05-14T09:32:00Z',
+    unread: 2,
+    online: true,
+    userId: 'user-1',
     messages: [
       {
         id: 'msg-1',
-        content: 'Hey, how are you doing?',
-        senderId: 'user-2',
-        timestamp: '2025-05-10T10:30:00Z',
-        isRead: true
+        content: 'Hello, can you help me with the assignment?',
+        senderId: 'user-1',
+        senderName: 'Sarah Johnson',
+        timestamp: '2025-05-14T09:30:00Z',
+        status: 'read'
       },
       {
         id: 'msg-2',
-        content: 'I\'m good, thanks! Working on the project.',
-        senderId: 'user-123',
-        timestamp: '2025-05-10T10:35:00Z',
-        isRead: true
+        content: 'Sure, which part are you stuck on?',
+        senderId: 'current-user',
+        senderName: 'You',
+        timestamp: '2025-05-14T09:31:00Z',
+        status: 'read'
       },
       {
         id: 'msg-3',
-        content: 'Did you complete the assignment?',
-        senderId: 'user-2',
-        timestamp: '2025-05-10T10:45:00Z',
-        isRead: false
+        content: 'Can you share the notes from yesterday?',
+        senderId: 'user-1',
+        senderName: 'Sarah Johnson',
+        timestamp: '2025-05-14T09:32:00Z',
+        status: 'delivered'
       }
     ]
   },
   {
     id: 'chat-2',
-    participantId: 'user-4',
-    participantName: 'David Chen',
-    participantAvatar: 'https://i.pravatar.cc/150?img=8',
-    lastMessage: 'Let\'s meet at the library tomorrow',
-    lastMessageTime: 'Yesterday',
-    unreadCount: 0,
+    name: 'David Chen',
+    avatar: '/placeholder.svg',
+    lastMessage: 'Are we meeting for the group project today?',
+    timestamp: '2025-05-13T16:45:00Z',
+    unread: 0,
+    online: false,
+    userId: 'user-2',
     messages: [
       {
-        id: 'msg-1',
-        content: 'Hi David, are you free tomorrow?',
-        senderId: 'user-123',
-        timestamp: '2025-05-09T14:20:00Z',
-        isRead: true
+        id: 'msg-4',
+        content: 'Hey, did you finish your part of the presentation?',
+        senderId: 'user-2',
+        senderName: 'David Chen',
+        timestamp: '2025-05-13T16:40:00Z',
+        status: 'read'
       },
       {
-        id: 'msg-2',
-        content: 'Yes, I am. What\'s up?',
+        id: 'msg-5',
+        content: 'Yes, I just uploaded it to the shared folder',
+        senderId: 'current-user',
+        senderName: 'You',
+        timestamp: '2025-05-13T16:42:00Z',
+        status: 'read'
+      },
+      {
+        id: 'msg-6',
+        content: 'Are we meeting for the group project today?',
+        senderId: 'user-2',
+        senderName: 'David Chen',
+        timestamp: '2025-05-13T16:45:00Z',
+        status: 'read'
+      }
+    ]
+  },
+  {
+    id: 'chat-3',
+    name: 'Team Physics Study Group',
+    avatar: '/placeholder.svg',
+    lastMessage: 'Miguel: I found a great resource for the lab',
+    timestamp: '2025-05-12T14:20:00Z',
+    unread: 5,
+    userId: 'group-1',
+    messages: [
+      {
+        id: 'msg-7',
+        content: 'Has everyone reviewed the experiment requirements?',
+        senderId: 'user-3',
+        senderName: 'Ava Williams',
+        timestamp: '2025-05-12T14:10:00Z',
+        status: 'read'
+      },
+      {
+        id: 'msg-8',
+        content: 'Yes, I have questions about the procedure section',
+        senderId: 'current-user',
+        senderName: 'You',
+        timestamp: '2025-05-12T14:15:00Z',
+        status: 'read'
+      },
+      {
+        id: 'msg-9',
+        content: 'I found a great resource for the lab',
         senderId: 'user-4',
-        timestamp: '2025-05-09T14:25:00Z',
-        isRead: true
-      },
-      {
-        id: 'msg-3',
-        content: 'Let\'s meet at the library tomorrow',
-        senderId: 'user-123',
-        timestamp: '2025-05-09T14:30:00Z',
-        isRead: true
+        senderName: 'Miguel Rodriguez',
+        timestamp: '2025-05-12T14:20:00Z',
+        status: 'delivered'
       }
     ]
   }
 ];
 
-const mockGroups: Group[] = [
-  {
-    id: 'group-1',
-    name: 'Advanced ML Study Group',
-    avatar: '',
-    members: [
-      { id: 'user-1', name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=1' },
-      { id: 'user-2', name: 'Sarah Johnson', avatar: 'https://i.pravatar.cc/150?img=5' },
-      { id: 'user-3', name: 'Miguel Rodriguez', avatar: 'https://i.pravatar.cc/150?img=12' }
-    ],
-    lastMessage: 'Let\'s review the gradient descent algorithm',
-    lastMessageTime: '3:20 PM',
-    unreadCount: 5
-  },
-  {
-    id: 'group-2',
-    name: 'Quantum Computing Group',
-    avatar: '',
-    members: [
-      { id: 'user-1', name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=1' },
-      { id: 'user-6', name: 'Lisa Wang', avatar: 'https://i.pravatar.cc/150?img=9' }
-    ],
-    lastMessage: 'Meeting scheduled for Friday',
-    lastMessageTime: 'Tuesday',
-    unreadCount: 0
-  }
-];
-
 const ChatsPage: React.FC = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const isMobile = useIsMobile();
-  const [activeChat, setActiveChat] = useState<Chat | null>(null);
-  const [activeGroup, setActiveGroup] = useState<Group | null>(null);
-  const [message, setMessage] = useState('');
-  const [chats, setChats] = useState<Chat[]>(mockChats);
-  const [groups, setGroups] = useState<Group[]>(mockGroups);
-  const [activeTab, setActiveTab] = useState('direct');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showingSharedResources, setShowingSharedResources] = useState(false);
-  const [sharedResourcesUserId, setSharedResourcesUserId] = useState<string | null>(null);
-
+  const [message, setMessage] = useState('');
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [showSharedResources, setShowSharedResources] = useState(false);
+  const isMobile = useIsMobile();
+  const { toast } = useToast();
+  
+  // Filter chats based on search query
+  const filteredChats = mockChats.filter(
+    chat => chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  // Handle sending a message
   const handleSendMessage = () => {
-    if (!message.trim()) return;
+    if (!message.trim() || !selectedChat) return;
     
     const newMessage: Message = {
       id: `msg-${Date.now()}`,
       content: message,
-      senderId: user?.id || '',
+      senderId: 'current-user',
+      senderName: 'You',
       timestamp: new Date().toISOString(),
-      isRead: false
+      status: 'sending'
     };
     
-    if (activeChat) {
-      const updatedChats = chats.map(chat => {
-        if (chat.id === activeChat.id) {
-          return {
-            ...chat,
-            lastMessage: message,
-            lastMessageTime: 'Just now',
-            messages: [...chat.messages, newMessage]
-          };
-        }
-        return chat;
-      });
-      
-      setChats(updatedChats);
-      setActiveChat(prev => prev ? {
-        ...prev,
-        lastMessage: message,
-        lastMessageTime: 'Just now',
-        messages: [...prev.messages, newMessage]
-      } : null);
-    }
+    // Update the selected chat with the new message
+    setSelectedChat({
+      ...selectedChat,
+      messages: [...selectedChat.messages, newMessage],
+      lastMessage: message,
+      timestamp: new Date().toISOString()
+    });
     
     setMessage('');
-  };
-
-  const startChatWithGroupMember = (groupId: string, memberId: string) => {
-    // Find the group
-    const group = groups.find(g => g.id === groupId);
-    if (!group) return;
     
-    // Find the member
-    const member = group.members.find(m => m.id === memberId);
-    if (!member) return;
-    
-    // Check if chat already exists
-    const existingChat = chats.find(chat => chat.participantId === memberId);
-    
-    if (existingChat) {
-      setActiveChat(existingChat);
-      setActiveGroup(null);
-      setActiveTab('direct');
-    } else {
-      // Create new chat
-      const newChat: Chat = {
-        id: `chat-${Date.now()}`,
-        participantId: memberId,
-        participantName: member.name,
-        participantAvatar: member.avatar,
-        lastMessage: '',
-        lastMessageTime: 'Just now',
-        unreadCount: 0,
-        messages: []
-      };
-      
-      setChats([newChat, ...chats]);
-      setActiveChat(newChat);
-      setActiveGroup(null);
-      setActiveTab('direct');
-      
+    // Simulate message being sent
+    setTimeout(() => {
       toast({
-        title: "New chat created",
-        description: `You started a conversation with ${member.name}`
+        description: "Message sent",
       });
-    }
+    }, 500);
   };
-
-  const handleBackToList = () => {
-    if (isMobile) {
-      setActiveChat(null);
-      setActiveGroup(null);
-    }
-  };
-
-  const handleOpenSharedResources = (userId: string) => {
-    setSharedResourcesUserId(userId);
-    setShowingSharedResources(true);
-  };
-
-  const filteredChats = chats.filter(chat => 
-    chat.participantName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
   
-  const filteredGroups = groups.filter(group => 
-    group.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Format timestamps for display
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  };
 
-  if (showingSharedResources && sharedResourcesUserId) {
-    return (
-      <div className="container mx-auto p-4 h-[80vh]">
-        <SharedResources 
-          userId={sharedResourcesUserId} 
-          onClose={() => {
-            setShowingSharedResources(false);
-            setSharedResourcesUserId(null);
-          }} 
-        />
-      </div>
-    );
-  }
-
-  if (isMobile) {
-    if (activeChat || activeGroup) {
-      return (
-        <div className="container mx-auto p-4 h-[80vh]">
-          <Card className="h-full overflow-hidden flex flex-col">
-            <div className="p-3 border-b flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={handleBackToList}>
+  // Handle user profile click to view shared resources
+  const handleProfileClick = (userId: string) => {
+    if (!userId) return;
+    setShowSharedResources(true);
+  };
+  
+  return (
+    <div className="h-[calc(100vh-6rem)] flex flex-col">
+      {isMobile ? (
+        // Mobile layout
+        <>
+          {selectedChat ? (
+            // Chat conversation view when chat is selected
+            <div className="flex flex-col h-full">
+              {/* Mobile chat header */}
+              <div className="flex items-center p-3 border-b">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setSelectedChat(null)}
+                  className="mr-2"
+                >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                
-                <div className="flex items-center gap-2">
-                  <Avatar
-                    className="cursor-pointer" 
-                    onClick={() => {
-                      if (activeChat) {
-                        handleOpenSharedResources(activeChat.participantId);
-                      }
-                    }}
-                  >
-                    {activeChat ? (
-                      <>
-                        <AvatarImage src={activeChat.participantAvatar} />
-                        <AvatarFallback>{activeChat.participantName.charAt(0)}</AvatarFallback>
-                      </>
-                    ) : activeGroup ? (
-                      <>
-                        {activeGroup.avatar ? (
-                          <AvatarImage src={activeGroup.avatar} />
-                        ) : (
-                          <AvatarFallback className="bg-blue-500">
-                            <Users className="h-4 w-4 text-white" />
-                          </AvatarFallback>
-                        )}
-                      </>
-                    ) : null}
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium text-sm">
-                      {activeChat ? activeChat.participantName : activeGroup?.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {activeChat ? 'Online' : activeGroup ? `${activeGroup.members.length} members` : ''}
-                    </p>
-                  </div>
+                <Avatar className="h-9 w-9 mr-2">
+                  <AvatarImage src={selectedChat.avatar} alt={selectedChat.name} />
+                  <AvatarFallback>{selectedChat.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="font-medium text-sm">{selectedChat.name}</h3>
+                  {selectedChat.online && (
+                    <span className="text-xs text-green-600 dark:text-green-400">Online</span>
+                  )}
+                </div>
+                <div className="flex items-center">
+                  {selectedChat.userId && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleProfileClick(selectedChat.userId || '')}
+                    >
+                      <UserRound className="h-5 w-5" />
+                    </Button>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>View profile</DropdownMenuItem>
+                      <DropdownMenuItem>Mute notifications</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-red-600 dark:text-red-400">
+                        Block user
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
               
-              <div className="flex items-center">
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
+              {/* Mobile chat messages */}
+              <div className="flex-1 overflow-auto p-3 space-y-4">
+                {selectedChat.messages.map((msg) => (
+                  <div 
+                    key={msg.id} 
+                    className={`flex ${msg.senderId === 'current-user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div 
+                      className={`max-w-[75%] p-3 rounded-lg ${
+                        msg.senderId === 'current-user' 
+                          ? 'bg-edvantage-blue text-white rounded-br-none' 
+                          : 'bg-gray-100 dark:bg-gray-800 rounded-bl-none'
+                      }`}
+                    >
+                      <p className="text-sm">{msg.content}</p>
+                      <div className={`text-xs mt-1 flex items-center ${
+                        msg.senderId === 'current-user' 
+                          ? 'text-blue-100' 
+                          : 'text-gray-500'
+                      }`}>
+                        {formatTimestamp(msg.timestamp)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Mobile message input */}
+              <div className="p-3 border-t">
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon">
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                  <Input 
+                    placeholder="Type a message..." 
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    disabled={!message.trim()}
+                    onClick={handleSendMessage}
+                  >
+                    <Send 
+                      className={`h-5 w-5 ${message.trim() ? 'text-edvantage-blue' : 'text-gray-400'}`} 
+                    />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : showSharedResources ? (
+            // Shared resources view
+            <SharedResources 
+              userId="user-1" 
+              onClose={() => setShowSharedResources(false)} 
+            />
+          ) : (
+            // Chat list view when no chat is selected
+            <div className="flex flex-col h-full">
+              <div className="p-3 border-b">
+                <h1 className="text-xl font-bold mb-3">Messages</h1>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search conversations..." 
+                    className="pl-9"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-auto">
+                {filteredChats.map((chat) => (
+                  <div 
+                    key={chat.id}
+                    className="flex items-center p-3 border-b hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                    onClick={() => setSelectedChat(chat)}
+                  >
+                    <div className="relative">
+                      <Avatar className="h-12 w-12 mr-3">
+                        <AvatarImage src={chat.avatar} alt={chat.name} />
+                        <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      {chat.online && (
+                        <span className="absolute bottom-0 right-2 h-3 w-3 rounded-full bg-green-500"></span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-medium truncate">{chat.name}</h3>
+                        <span className="text-xs text-muted-foreground">
+                          {formatTimestamp(chat.timestamp)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
+                    </div>
+                    {chat.unread > 0 && (
+                      <div className="ml-2 bg-edvantage-blue text-white text-xs font-semibold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+                        {chat.unread}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {filteredChats.length === 0 && (
+                  <div className="p-8 text-center">
+                    <p className="text-muted-foreground">No conversations found</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="p-3 border-t">
+                <Button className="w-full">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Conversation
                 </Button>
               </div>
             </div>
+          )}
+        </>
+      ) : (
+        // Desktop layout
+        <div className="grid grid-cols-3 h-full border rounded-lg overflow-hidden">
+          {/* Chat list sidebar */}
+          <div className="col-span-1 border-r overflow-hidden flex flex-col">
+            <div className="p-4 border-b">
+              <h1 className="text-xl font-bold mb-4">Messages</h1>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search conversations..." 
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
             
-            <ScrollArea className="flex-1 p-4">
-              {activeChat ? (
-                <div className="space-y-4">
-                  {activeChat.messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
+            <div className="flex-1 overflow-auto">
+              {filteredChats.map((chat) => (
+                <div 
+                  key={chat.id}
+                  className={`flex items-center p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer ${
+                    selectedChat?.id === chat.id ? 'bg-gray-100 dark:bg-gray-800' : ''
+                  }`}
+                  onClick={() => setSelectedChat(chat)}
+                >
+                  <div className="relative">
+                    <Avatar className="h-12 w-12 mr-3">
+                      <AvatarImage src={chat.avatar} alt={chat.name} />
+                      <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {chat.online && (
+                      <span className="absolute bottom-0 right-2 h-3 w-3 rounded-full bg-green-500"></span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-medium truncate">{chat.name}</h3>
+                      <span className="text-xs text-muted-foreground">
+                        {formatTimestamp(chat.timestamp)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
+                  </div>
+                  {chat.unread > 0 && (
+                    <div className="ml-2 bg-edvantage-blue text-white text-xs font-semibold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+                      {chat.unread}
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {filteredChats.length === 0 && (
+                <div className="p-8 text-center">
+                  <p className="text-muted-foreground">No conversations found</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t">
+              <Button className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                New Conversation
+              </Button>
+            </div>
+          </div>
+          
+          {/* Chat conversation area */}
+          <div className={`col-span-2 flex flex-col ${showSharedResources ? 'hidden md:flex' : ''}`}>
+            {selectedChat ? (
+              <>
+                <div className="flex items-center justify-between p-4 border-b">
+                  <div className="flex items-center">
+                    <Avatar className="h-10 w-10 mr-3">
+                      <AvatarImage src={selectedChat.avatar} alt={selectedChat.name} />
+                      <AvatarFallback>{selectedChat.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-medium">{selectedChat.name}</h3>
+                      {selectedChat.online && (
+                        <span className="text-xs text-green-600 dark:text-green-400">Online</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {selectedChat.userId && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleProfileClick(selectedChat.userId || '')}
+                      >
+                        <UserRound className="h-4 w-4 mr-2" />
+                        View Profile
+                      </Button>
+                    )}
+                    {selectedChat.userId && (
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => setShowSharedResources(!showSharedResources)}
+                      >
+                        <PanelRight className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Mute notifications</DropdownMenuItem>
+                        <DropdownMenuItem>Search in conversation</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-red-600 dark:text-red-400">
+                          Block user
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-auto p-4 space-y-4">
+                  {selectedChat.messages.map((msg) => (
+                    <div 
+                      key={msg.id} 
+                      className={`flex ${msg.senderId === 'current-user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div
-                        className={`max-w-[80%] p-3 rounded-lg ${
-                          msg.senderId === user?.id
-                            ? 'bg-blue-500 text-white rounded-br-none'
+                      {msg.senderId !== 'current-user' && (
+                        <Avatar className="h-8 w-8 mr-2 mt-1">
+                          <AvatarFallback>{msg.senderName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div 
+                        className={`max-w-[70%] p-3 rounded-lg ${
+                          msg.senderId === 'current-user' 
+                            ? 'bg-edvantage-blue text-white rounded-br-none' 
                             : 'bg-gray-100 dark:bg-gray-800 rounded-bl-none'
                         }`}
                       >
+                        {msg.senderId !== 'current-user' && msg.type !== 'system' && (
+                          <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">
+                            {msg.senderName}
+                          </p>
+                        )}
                         <p>{msg.content}</p>
-                        <p className={`text-xs mt-1 ${
-                          msg.senderId === user?.id ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                        <div className={`text-xs mt-1 flex items-center justify-end ${
+                          msg.senderId === 'current-user' 
+                            ? 'text-blue-100' 
+                            : 'text-gray-500'
                         }`}>
-                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
+                          {formatTimestamp(msg.timestamp)}
+                          {msg.senderId === 'current-user' && msg.status && (
+                            <span className="ml-1">
+                              {msg.status === 'read' ? '✓✓' : msg.status === 'delivered' ? '✓✓' : '✓'}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {msg.senderId === 'current-user' && (
+                        <Avatar className="h-8 w-8 ml-2 mt-1">
+                          <AvatarFallback>You</AvatarFallback>
+                        </Avatar>
+                      )}
                     </div>
                   ))}
-                </div>
-              ) : activeGroup ? (
-                <div>
-                  <div className="mb-6 text-center">
-                    <h4 className="text-lg font-medium mb-2">{activeGroup.name}</h4>
-                    <p className="text-sm text-muted-foreground mb-4">Group created for collaborative study</p>
-                    
-                    <div className="flex justify-center mb-4">
-                      <div className="flex -space-x-2">
-                        {activeGroup.members.slice(0, 5).map(member => (
-                          <Avatar key={member.id} className="border-2 border-background">
-                            <AvatarImage src={member.avatar} />
-                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                        ))}
-                        {activeGroup.members.length > 5 && (
-                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted border-2 border-background">
-                            <span className="text-xs font-medium">+{activeGroup.members.length - 5}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="text-center mb-8">
-                      <h5 className="font-medium mb-2">Group Members</h5>
-                      <div className="flex flex-wrap justify-center gap-2">
-                        {activeGroup.members.map(member => (
-                          <Button
-                            key={member.id}
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-2"
-                            onClick={() => startChatWithGroupMember(activeGroup.id, member.id)}
-                          >
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={member.avatar} />
-                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <span>{member.name}</span>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <Separator className="my-4" />
-                    
-                    <p className="text-sm text-muted-foreground">Group messages coming soon!</p>
-                  </div>
-                </div>
-              ) : null}
-            </ScrollArea>
-            
-            <div className="p-3 border-t">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon">
-                  <File className="h-5 w-5 text-muted-foreground" />
-                </Button>
-                <Input
-                  placeholder="Type a message..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                />
-                <Button onClick={handleSendMessage} className="flex-shrink-0">
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="container mx-auto p-4 h-[80vh]">
-        <Card className="h-full overflow-hidden flex flex-col">
-          <CardHeader className="pb-3">
-            <CardTitle>Messages</CardTitle>
-            <div className="relative mt-2">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                className="pl-8" 
-                placeholder="Search chats..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </CardHeader>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid grid-cols-2 mx-4">
-              <TabsTrigger value="direct" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span>Direct</span>
-              </TabsTrigger>
-              <TabsTrigger value="groups" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>Groups</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="direct" className="flex-1 overflow-hidden flex flex-col">
-              <ScrollArea className="flex-1 p-3">
-                {filteredChats.length > 0 ? (
-                  <div className="space-y-2">
-                    {filteredChats.map(chat => (
-                      <div 
-                        key={chat.id}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted transition-colors"
-                        onClick={() => { setActiveChat(chat); setActiveGroup(null); }}
-                      >
-                        <Avatar>
-                          <AvatarImage src={chat.participantAvatar} />
-                          <AvatarFallback>{chat.participantName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium truncate">{chat.participantName}</h4>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">{chat.lastMessageTime}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
-                        </div>
-                        {chat.unreadCount > 0 && (
-                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
-                            {chat.unreadCount}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                    <User className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="font-medium mb-1">No conversations yet</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Start a new conversation with another user</p>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Chat
-                    </Button>
-                  </div>
-                )}
-              </ScrollArea>
-            </TabsContent>
-            
-            <TabsContent value="groups" className="flex-1 overflow-hidden flex flex-col">
-              <ScrollArea className="flex-1 p-3">
-                {filteredGroups.length > 0 ? (
-                  <div className="space-y-2">
-                    {filteredGroups.map(group => (
-                      <div 
-                        key={group.id}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted transition-colors"
-                        onClick={() => { setActiveGroup(group); setActiveChat(null); }}
-                      >
-                        <Avatar>
-                          {group.avatar ? (
-                            <AvatarImage src={group.avatar} />
-                          ) : (
-                            <AvatarFallback className="bg-blue-500">
-                              <Users className="h-4 w-4 text-white" />
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium truncate">{group.name}</h4>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">{group.lastMessageTime}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">{group.lastMessage}</p>
-                        </div>
-                        {group.unreadCount > 0 && (
-                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
-                            {group.unreadCount}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                    <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="font-medium mb-1">No groups yet</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Join or create a study group</p>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Group
-                    </Button>
-                  </div>
-                )}
-              </ScrollArea>
-            </TabsContent>
-          </Tabs>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto p-4">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[80vh]">
-        <Card className="lg:col-span-1 overflow-hidden flex flex-col h-full">
-          <CardHeader className="pb-3">
-            <CardTitle>Messages</CardTitle>
-            <div className="relative mt-2">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                className="pl-8" 
-                placeholder="Search chats..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </CardHeader>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid grid-cols-2 mx-4">
-              <TabsTrigger value="direct" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span>Direct</span>
-              </TabsTrigger>
-              <TabsTrigger value="groups" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>Groups</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="direct" className="flex-1 overflow-hidden flex flex-col">
-              <ScrollArea className="flex-1 p-3">
-                {filteredChats.length > 0 ? (
-                  <div className="space-y-2">
-                    {filteredChats.map(chat => (
-                      <div 
-                        key={chat.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted transition-colors ${activeChat?.id === chat.id ? 'bg-muted' : ''}`}
-                        onClick={() => { setActiveChat(chat); setActiveGroup(null); }}
-                      >
-                        <Avatar>
-                          <AvatarImage src={chat.participantAvatar} />
-                          <AvatarFallback>{chat.participantName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium truncate">{chat.participantName}</h4>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">{chat.lastMessageTime}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
-                        </div>
-                        {chat.unreadCount > 0 && (
-                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
-                            {chat.unreadCount}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                    <User className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="font-medium mb-1">No conversations yet</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Start a new conversation with another user</p>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Chat
-                    </Button>
-                  </div>
-                )}
-              </ScrollArea>
-            </TabsContent>
-            
-            <TabsContent value="groups" className="flex-1 overflow-hidden flex flex-col">
-              <ScrollArea className="flex-1 p-3">
-                {filteredGroups.length > 0 ? (
-                  <div className="space-y-2">
-                    {filteredGroups.map(group => (
-                      <div 
-                        key={group.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted transition-colors ${activeGroup?.id === group.id ? 'bg-muted' : ''}`}
-                        onClick={() => { setActiveGroup(group); setActiveChat(null); }}
-                      >
-                        <Avatar>
-                          {group.avatar ? (
-                            <AvatarImage src={group.avatar} />
-                          ) : (
-                            <AvatarFallback className="bg-blue-500">
-                              <Users className="h-4 w-4 text-white" />
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium truncate">{group.name}</h4>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">{group.lastMessageTime}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">{group.lastMessage}</p>
-                        </div>
-                        {group.unreadCount > 0 && (
-                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
-                            {group.unreadCount}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                    <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="font-medium mb-1">No groups yet</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Join or create a study group</p>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Group
-                    </Button>
-                  </div>
-                )}
-              </ScrollArea>
-            </TabsContent>
-          </Tabs>
-        </Card>
-        
-        {showingSharedResources && sharedResourcesUserId ? (
-          <Card className="lg:col-span-2 overflow-hidden flex flex-col h-full">
-            <SharedResources 
-              userId={sharedResourcesUserId} 
-              onClose={() => {
-                setShowingSharedResources(false);
-                setSharedResourcesUserId(null);
-              }} 
-            />
-          </Card>
-        ) : (
-          <Card className="lg:col-span-2 overflow-hidden flex flex-col h-full">
-            {(activeChat || activeGroup) ? (
-              <>
-                <div className="p-4 border-b flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      className="cursor-pointer"
-                      onClick={() => {
-                        if (activeChat) {
-                          handleOpenSharedResources(activeChat.participantId);
-                        }
-                      }}
-                    >
-                      {activeChat ? (
-                        <>
-                          <AvatarImage src={activeChat.participantAvatar} />
-                          <AvatarFallback>{activeChat.participantName.charAt(0)}</AvatarFallback>
-                        </>
-                      ) : activeGroup ? (
-                        <>
-                          {activeGroup.avatar ? (
-                            <AvatarImage src={activeGroup.avatar} />
-                          ) : (
-                            <AvatarFallback className="bg-blue-500">
-                              <Users className="h-4 w-4 text-white" />
-                            </AvatarFallback>
-                          )}
-                        </>
-                      ) : null}
-                    </Avatar>
-                    <div>
-                      <h3 className="font-medium">
-                        {activeChat ? activeChat.participantName : activeGroup?.name}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {activeChat ? (
-                          <span className="flex items-center gap-1">
-                            Online
-                            <Button 
-                              variant="link" 
-                              className="h-auto p-0 text-xs" 
-                              onClick={() => {
-                                if (activeChat) {
-                                  handleOpenSharedResources(activeChat.participantId);
-                                }
-                              }}
-                            >
-                              View shared resources
-                            </Button>
-                          </span>
-                        ) : activeGroup ? `${activeGroup.members.length} members` : ''}
-                      </p>
-                    </div>
-                  </div>
                   
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Video className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                <ScrollArea className="flex-1 p-4">
-                  {activeChat ? (
-                    <div className="space-y-4">
-                      {activeChat.messages.map((msg) => (
-                        <div
-                          key={msg.id}
-                          className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div
-                            className={`max-w-[80%] p-3 rounded-lg ${
-                              msg.senderId === user?.id
-                                ? 'bg-blue-500 text-white rounded-br-none'
-                                : 'bg-gray-100 dark:bg-gray-800 rounded-bl-none'
-                            }`}
-                          >
-                            <p>{msg.content}</p>
-                            <p className={`text-xs mt-1 ${
-                              msg.senderId === user?.id ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
-                            }`}>
-                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                          </div>
+                  {selectedChat.typing && (
+                    <div className="flex justify-start">
+                      <Avatar className="h-8 w-8 mr-2">
+                        <AvatarFallback>{selectedChat.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                        <div className="flex space-x-1">
+                          <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                          <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
                         </div>
-                      ))}
-                    </div>
-                  ) : activeGroup ? (
-                    <div>
-                      <div className="mb-6 text-center">
-                        <h4 className="text-lg font-medium mb-2">{activeGroup.name}</h4>
-                        <p className="text-sm text-muted-foreground mb-4">Group created for collaborative study</p>
-                        
-                        <div className="flex justify-center mb-4">
-                          <div className="flex -space-x-2">
-                            {activeGroup.members.slice(0, 5).map(member => (
-                              <Avatar key={member.id} className="border-2 border-background">
-                                <AvatarImage src={member.avatar} />
-                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                            ))}
-                            {activeGroup.members.length > 5 && (
-                              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted border-2 border-background">
-                                <span className="text-xs font-medium">+{activeGroup.members.length - 5}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className="text-center mb-8">
-                          <h5 className="font-medium mb-2">Group Members</h5>
-                          <div className="flex flex-wrap justify-center gap-2">
-                            {activeGroup.members.map(member => (
-                              <Button
-                                key={member.id}
-                                variant="outline"
-                                size="sm"
-                                className="flex items-center gap-2"
-                                onClick={() => startChatWithGroupMember(activeGroup.id, member.id)}
-                              >
-                                <Avatar className="h-6 w-6">
-                                  <AvatarImage src={member.avatar} />
-                                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <span>{member.name}</span>
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <Separator className="my-4" />
-                        
-                        <p className="text-sm text-muted-foreground">Group messages coming soon!</p>
                       </div>
                     </div>
-                  ) : null}
-                </ScrollArea>
+                  )}
+                </div>
                 
                 <div className="p-4 border-t">
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <File className="h-5 w-5 text-muted-foreground" />
-                    </Button>
-                    <Input
-                      placeholder="Type a message..."
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Plus className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <Image className="h-4 w-4 mr-2" />
+                          Send Image
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <File className="h-4 w-4 mr-2" />
+                          Send File
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Input 
+                      placeholder="Type a message..." 
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
+                      className="flex-1"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -848,19 +622,25 @@ const ChatsPage: React.FC = () => {
                         }
                       }}
                     />
-                    <Button onClick={handleSendMessage} className="flex-shrink-0">
-                      <Send className="h-4 w-4" />
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={handleSendMessage}
+                      disabled={!message.trim()}
+                    >
+                      <Send 
+                        className={`h-5 w-5 ${message.trim() ? 'text-edvantage-blue' : 'text-gray-400'}`} 
+                      />
                     </Button>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center">
-                <div className="max-w-md text-center p-8">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h2 className="text-xl font-medium mb-2">Your Messages</h2>
+              <div className="flex flex-col items-center justify-center h-full p-4">
+                <div className="text-center max-w-md">
+                  <h3 className="text-2xl font-bold mb-2">Select a Conversation</h3>
                   <p className="text-muted-foreground mb-6">
-                    Select a conversation from the sidebar or start a new one
+                    Choose a conversation from the list to start chatting or create a new one.
                   </p>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
@@ -869,12 +649,21 @@ const ChatsPage: React.FC = () => {
                 </div>
               </div>
             )}
-          </Card>
-        )}
-      </div>
+          </div>
+          
+          {/* Shared resources panel (desktop only) */}
+          {showSharedResources && selectedChat && (
+            <div className="md:col-span-2 lg:col-span-1 border-l h-full">
+              <SharedResources 
+                userId={selectedChat.userId || ''} 
+                onClose={() => setShowSharedResources(false)} 
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 export default ChatsPage;
-

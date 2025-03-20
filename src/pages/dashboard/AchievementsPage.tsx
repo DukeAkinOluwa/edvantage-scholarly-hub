@@ -20,7 +20,8 @@ import {
   MessageSquare,
   Clock,
   Calendar,
-  Filter
+  Filter,
+  ChevronDown
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -38,6 +39,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 const getAchievementIcon = (achievement: Achievement) => {
   const iconMap: Record<string, JSX.Element> = {
@@ -166,6 +182,7 @@ const AchievementsPage = () => {
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [showStats, setShowStats] = useState(!isMobile); // Initially expanded on desktop, collapsed on mobile
   
   const handleShare = () => {
     try {
@@ -223,6 +240,52 @@ const AchievementsPage = () => {
     { id: 'time', name: 'Time', icon: <Clock className="h-4 w-4" /> },
   ];
 
+  // Mobile-optimized achievement item component
+  const MobileAchievementItem = ({ achievement }: { achievement: Achievement }) => (
+    <Collapsible className="w-full border rounded-lg mb-3">
+      <div className="flex items-center p-3">
+        <div className={`w-10 h-10 rounded-full ${getAchievementColor(achievement)} flex items-center justify-center flex-shrink-0`}>
+          {getAchievementIcon(achievement)}
+        </div>
+        <div className="ml-3 flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium truncate">{achievement.title}</h3>
+            <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 font-semibold px-2 py-1 rounded text-xs flex items-center flex-shrink-0 ml-2">
+              <Trophy className="h-3 w-3 mr-1" />
+              {achievement.points} pts
+            </div>
+          </div>
+          <div className="flex items-center justify-between mt-1">
+            <div className="text-xs text-muted-foreground">
+              Progress: {achievement.progress}/{achievement.maxProgress}
+            </div>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-6 p-0">
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+        </div>
+      </div>
+      
+      <CollapsibleContent>
+        <div className="px-3 pb-3 pt-0">
+          <Progress 
+            value={(achievement.progress / achievement.maxProgress) * 100} 
+            className="h-2 mb-3" 
+          />
+          <p className="text-sm mb-2">{achievement.description}</p>
+          {achievement.earnedAt && (
+            <p className="text-xs text-muted-foreground">
+              Earned on {new Date(achievement.earnedAt).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+
+  // Desktop achievement item
   const AchievementItem = ({ achievement }: { achievement: Achievement }) => (
     <Card 
       key={achievement.id} 
@@ -263,243 +326,344 @@ const AchievementsPage = () => {
     </Card>
   );
 
-  return (
-    <div className="container mx-auto p-4">
-      {/* Achievement Level Card */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl flex items-center">
-              <Award className="mr-2 h-6 w-6 text-yellow-500" />
-              My Achievements
-            </CardTitle>
-            <Button variant="outline" onClick={() => setIsShareDialogOpen(true)}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className="flex items-center gap-4">
-              <div className="h-20 w-20 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400 text-2xl font-bold border-4 border-yellow-200 dark:border-yellow-800/50">
-                {userLevel}
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-semibold">Level {userLevel}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {pointsToNextLevel} points to next level
-                </p>
-              </div>
+  // Mobile achievements content
+  const MobileAchievementsContent = () => (
+    <div className="space-y-4">
+      {/* Mobile Level Card with Collapsible Stats */}
+      <Card>
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400 text-lg font-bold border-2 border-yellow-200 dark:border-yellow-800/50">
+              {userLevel}
             </div>
-            
-            <div className="flex-1 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>{userPoints} points</span>
-                <span>{userLevel * 100} points</span>
-              </div>
-              <Progress value={levelProgress} className="h-2" />
-            </div>
-          </div>
-          
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
-              <h4 className="text-sm text-muted-foreground mb-1">Total Points</h4>
-              <p className="text-2xl font-semibold">{userPoints}</p>
-            </div>
-            <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg">
-              <h4 className="text-sm text-muted-foreground mb-1">Earned</h4>
-              <p className="text-2xl font-semibold">{earnedAchievements.length}</p>
-            </div>
-            <div className="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg">
-              <h4 className="text-sm text-muted-foreground mb-1">In Progress</h4>
-              <p className="text-2xl font-semibold">{inProgressAchievements.length}</p>
-            </div>
-            <div className="bg-purple-50 dark:bg-purple-950/30 p-3 rounded-lg">
-              <h4 className="text-sm text-muted-foreground mb-1">Completion</h4>
-              <p className="text-2xl font-semibold">
-                {achievements.length > 0
-                  ? `${Math.round((earnedAchievements.length / achievements.length) * 100)}%`
-                  : '0%'}
+            <div>
+              <CardTitle className="text-lg">Level {userLevel}</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                {pointsToNextLevel} XP to next level
               </p>
             </div>
           </div>
+          
+          <Button variant="outline" size="sm" onClick={() => setIsShareDialogOpen(true)}>
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        
+        <CardContent className="pb-3">
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs">
+              <span>{userPoints} XP</span>
+              <span>{userLevel * 100} XP</span>
+            </div>
+            <Progress value={levelProgress} className="h-2" />
+          </div>
+          
+          <Collapsible
+            open={showStats}
+            onOpenChange={setShowStats}
+            className="mt-3"
+          >
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-medium">Achievement Stats</h4>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showStats ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            
+            <CollapsibleContent className="mt-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded-lg">
+                  <h4 className="text-xs text-muted-foreground">Total Points</h4>
+                  <p className="text-lg font-semibold">{userPoints}</p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-950/30 p-2 rounded-lg">
+                  <h4 className="text-xs text-muted-foreground">Earned</h4>
+                  <p className="text-lg font-semibold">{earnedAchievements.length}</p>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-950/30 p-2 rounded-lg">
+                  <h4 className="text-xs text-muted-foreground">In Progress</h4>
+                  <p className="text-lg font-semibold">{inProgressAchievements.length}</p>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-950/30 p-2 rounded-lg">
+                  <h4 className="text-xs text-muted-foreground">Completion</h4>
+                  <p className="text-lg font-semibold">
+                    {achievements.length > 0
+                      ? `${Math.round((earnedAchievements.length / achievements.length) * 100)}%`
+                      : '0%'}
+                  </p>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </CardContent>
       </Card>
       
-      {/* Filters and Achievements Content */}
-      {isMobile ? (
-        <div className="space-y-4">
-          {/* Mobile Filters - Dropdown */}
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-semibold">Achievements</h3>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+      {/* Mobile Filters and Tabs */}
+      <div className="flex justify-between items-center mb-2">
+        <Tabs defaultValue="earned" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="earned" className="text-sm">
+              Earned ({earnedAchievements.length})
+            </TabsTrigger>
+            <TabsTrigger value="in-progress" className="text-sm">
+              In Progress ({inProgressAchievements.length})
+            </TabsTrigger>
+          </TabsList>
+          
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-base font-medium">Achievements</h3>
+            <Drawer>
+              <DrawerTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Filter className="h-4 w-4 mr-2" />
                   {activeFilter ? 
                     categories.find(c => c.id === activeFilter)?.name : 
                     'Filter'}
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setActiveFilter(null)}>
-                  All Categories
-                </DropdownMenuItem>
-                {categories.map((category) => (
-                  <DropdownMenuItem 
-                    key={category.id}
-                    onClick={() => setActiveFilter(category.id)}
-                    className="flex items-center"
-                  >
-                    <span className="mr-2">{category.icon}</span>
-                    {category.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Filter Achievements</DrawerTitle>
+                  <DrawerDescription>Select a category to filter achievements</DrawerDescription>
+                </DrawerHeader>
+                <div className="px-4 pb-4">
+                  <ScrollArea className="h-[50vh]">
+                    <div className="space-y-1">
+                      <Button 
+                        variant={activeFilter === null ? "default" : "outline"} 
+                        className="w-full justify-start mb-2" 
+                        onClick={() => {
+                          setActiveFilter(null);
+                          document.querySelector('[data-drawer-close="true"]')?.click();
+                        }}
+                      >
+                        <Award className="h-4 w-4 mr-2" />
+                        All Categories
+                      </Button>
+                      
+                      {categories.map((category) => (
+                        <Button 
+                          key={category.id}
+                          variant={activeFilter === category.id ? "default" : "outline"} 
+                          className="w-full justify-start mb-2" 
+                          onClick={() => {
+                            setActiveFilter(category.id);
+                            document.querySelector('[data-drawer-close="true"]')?.click();
+                          }}
+                        >
+                          {category.icon}
+                          <span className="ml-2">{category.name}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+                <DrawerFooter>
+                  <DrawerClose asChild>
+                    <Button variant="outline">Close</Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
           </div>
           
-          {/* Mobile Tabs */}
-          <Tabs defaultValue="earned">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="earned" className="flex items-center gap-2">
-                <Trophy className="h-4 w-4" />
-                Earned ({earnedAchievements.length})
-              </TabsTrigger>
-              <TabsTrigger value="in-progress" className="flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                In Progress ({inProgressAchievements.length})
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="earned" className="mt-4">
-              <div className="space-y-4">
-                {earnedAchievements.length > 0 ? (
-                  earnedAchievements.map(achievement => (
-                    <AchievementItem key={achievement.id} achievement={achievement} />
-                  ))
-                ) : (
-                  <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <h3 className="text-lg font-medium mb-1">No achievements yet</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Complete tasks and activities to earn achievements
-                    </p>
-                  </div>
-                )}
+          <TabsContent value="earned">
+            {earnedAchievements.length > 0 ? (
+              earnedAchievements.map(achievement => (
+                <MobileAchievementItem key={achievement.id} achievement={achievement} />
+              ))
+            ) : (
+              <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                <h3 className="text-lg font-medium mb-1">No achievements yet</h3>
+                <p className="text-sm text-muted-foreground">
+                  Complete tasks and activities to earn achievements
+                </p>
               </div>
-            </TabsContent>
-            
-            <TabsContent value="in-progress" className="mt-4">
-              <div className="space-y-4">
-                {inProgressAchievements.length > 0 ? (
-                  inProgressAchievements.map(achievement => (
-                    <AchievementItem key={achievement.id} achievement={achievement} />
-                  ))
-                ) : (
-                  <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <Star className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <h3 className="text-lg font-medium mb-1">All achievements completed!</h3>
-                    <p className="text-sm text-muted-foreground">
-                      You've earned all available achievements
-                    </p>
-                  </div>
-                )}
+            )}
+          </TabsContent>
+          
+          <TabsContent value="in-progress">
+            {inProgressAchievements.length > 0 ? (
+              inProgressAchievements.map(achievement => (
+                <MobileAchievementItem key={achievement.id} achievement={achievement} />
+              ))
+            ) : (
+              <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <Star className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                <h3 className="text-lg font-medium mb-1">All achievements completed!</h3>
+                <p className="text-sm text-muted-foreground">
+                  You've earned all available achievements
+                </p>
               </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="container mx-auto p-4">
+      {isMobile ? (
+        <MobileAchievementsContent />
       ) : (
-        // Desktop view
-        <div className="grid grid-cols-4 gap-6">
-          {/* Desktop Categories/Filters Sidebar */}
-          <Card className="col-span-1">
+        // Desktop layout - similar to original but more organized
+        <>
+          {/* Achievement Level Card */}
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Categories</CardTitle>
-            </CardHeader>
-            <CardContent className="px-2">
-              <div className="space-y-1">
-                <Button 
-                  variant={activeFilter === null ? "default" : "ghost"} 
-                  className="w-full justify-start" 
-                  onClick={() => setActiveFilter(null)}
-                >
-                  <Award className="h-4 w-4 mr-2" />
-                  All Categories
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl flex items-center">
+                  <Award className="mr-2 h-6 w-6 text-yellow-500" />
+                  My Achievements
+                </CardTitle>
+                <Button variant="outline" onClick={() => setIsShareDialogOpen(true)}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
                 </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row md:items-center gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-20 w-20 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400 text-2xl font-bold border-4 border-yellow-200 dark:border-yellow-800/50">
+                    {userLevel}
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-semibold">Level {userLevel}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {pointsToNextLevel} points to next level
+                    </p>
+                  </div>
+                </div>
                 
-                {categories.map((category) => (
-                  <Button 
-                    key={category.id}
-                    variant={activeFilter === category.id ? "default" : "ghost"} 
-                    className="w-full justify-start" 
-                    onClick={() => setActiveFilter(category.id)}
-                  >
-                    {category.icon}
-                    <span className="ml-2">{category.name}</span>
-                  </Button>
-                ))}
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>{userPoints} points</span>
+                    <span>{userLevel * 100} points</span>
+                  </div>
+                  <Progress value={levelProgress} className="h-2" />
+                </div>
+              </div>
+              
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
+                  <h4 className="text-sm text-muted-foreground mb-1">Total Points</h4>
+                  <p className="text-2xl font-semibold">{userPoints}</p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg">
+                  <h4 className="text-sm text-muted-foreground mb-1">Earned</h4>
+                  <p className="text-2xl font-semibold">{earnedAchievements.length}</p>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg">
+                  <h4 className="text-sm text-muted-foreground mb-1">In Progress</h4>
+                  <p className="text-2xl font-semibold">{inProgressAchievements.length}</p>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-950/30 p-3 rounded-lg">
+                  <h4 className="text-sm text-muted-foreground mb-1">Completion</h4>
+                  <p className="text-2xl font-semibold">
+                    {achievements.length > 0
+                      ? `${Math.round((earnedAchievements.length / achievements.length) * 100)}%`
+                      : '0%'}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
           
-          {/* Desktop Achievements Content */}
-          <div className="col-span-3 space-y-6">
-            <Tabs defaultValue="earned">
-              <TabsList>
-                <TabsTrigger value="earned" className="flex items-center">
-                  <Trophy className="h-4 w-4 mr-2" />
-                  Earned ({earnedAchievements.length})
-                </TabsTrigger>
-                <TabsTrigger value="in-progress" className="flex items-center">
-                  <Star className="h-4 w-4 mr-2" />
-                  In Progress ({inProgressAchievements.length})
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="earned" className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {earnedAchievements.length > 0 ? (
-                    earnedAchievements.map(achievement => (
-                      <AchievementItem key={achievement.id} achievement={achievement} />
-                    ))
-                  ) : (
-                    <div className="col-span-2 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-medium mb-2">No achievements earned yet</h3>
-                      <p className="text-muted-foreground">
-                        Complete tasks and activities to earn achievements
-                      </p>
-                    </div>
-                  )}
+          {/* Filters and Achievements Content */}
+          <div className="grid grid-cols-4 gap-6">
+            {/* Desktop Categories/Filters Sidebar */}
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Categories</CardTitle>
+              </CardHeader>
+              <CardContent className="px-2">
+                <div className="space-y-1">
+                  <Button 
+                    variant={activeFilter === null ? "default" : "ghost"} 
+                    className="w-full justify-start" 
+                    onClick={() => setActiveFilter(null)}
+                  >
+                    <Award className="h-4 w-4 mr-2" />
+                    All Categories
+                  </Button>
+                  
+                  {categories.map((category) => (
+                    <Button 
+                      key={category.id}
+                      variant={activeFilter === category.id ? "default" : "ghost"} 
+                      className="w-full justify-start" 
+                      onClick={() => setActiveFilter(category.id)}
+                    >
+                      {category.icon}
+                      <span className="ml-2">{category.name}</span>
+                    </Button>
+                  ))}
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="in-progress" className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {inProgressAchievements.length > 0 ? (
-                    inProgressAchievements.map(achievement => (
-                      <AchievementItem key={achievement.id} achievement={achievement} />
-                    ))
-                  ) : (
-                    <div className="col-span-2 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      <Star className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-medium mb-2">All achievements completed!</h3>
-                      <p className="text-muted-foreground">
-                        You've earned all available achievements
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
+              </CardContent>
+            </Card>
+            
+            {/* Desktop Achievements Content */}
+            <div className="col-span-3 space-y-6">
+              <Tabs defaultValue="earned">
+                <TabsList>
+                  <TabsTrigger value="earned" className="flex items-center">
+                    <Trophy className="h-4 w-4 mr-2" />
+                    Earned ({earnedAchievements.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="in-progress" className="flex items-center">
+                    <Star className="h-4 w-4 mr-2" />
+                    In Progress ({inProgressAchievements.length})
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="earned" className="mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {earnedAchievements.length > 0 ? (
+                      earnedAchievements.map(achievement => (
+                        <AchievementItem key={achievement.id} achievement={achievement} />
+                      ))
+                    ) : (
+                      <div className="col-span-2 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-medium mb-2">No achievements earned yet</h3>
+                        <p className="text-muted-foreground">
+                          Complete tasks and activities to earn achievements
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="in-progress" className="mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {inProgressAchievements.length > 0 ? (
+                      inProgressAchievements.map(achievement => (
+                        <AchievementItem key={achievement.id} achievement={achievement} />
+                      ))
+                    ) : (
+                      <div className="col-span-2 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <Star className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-medium mb-2">All achievements completed!</h3>
+                        <p className="text-muted-foreground">
+                          You've earned all available achievements
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
-        </div>
+        </>
       )}
       
-      {/* Share Dialog */}
+      {/* Share Dialog - Same for both mobile and desktop */}
       <AlertDialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
