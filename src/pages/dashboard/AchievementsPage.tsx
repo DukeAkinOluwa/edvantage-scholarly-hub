@@ -1,590 +1,519 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { useAchievements, Achievement } from '@/contexts/AchievementContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Award, 
-  TrendingUp, 
+  Share2, 
   Trophy, 
-  Users, 
-  Calendar, 
+  Star, 
+  Zap, 
   BookOpen, 
-  Brain, 
-  CheckSquare, 
-  Clock, 
-  ArrowUpRight,
-  Share2,
-  Target,
-  Crown,
-  Shield,
-  Palette,
-  Headset
+  Users, 
+  FileCheck, 
+  MessageSquare,
+  Clock,
+  Calendar,
+  Filter
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { 
-  achievements, 
-  leaderboard, 
-  Achievement, 
-  LeaderboardEntry 
-} from '@/data/dummyData';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+
+const getAchievementIcon = (achievement: Achievement) => {
+  const iconMap: Record<string, JSX.Element> = {
+    'task-master': <FileCheck className="h-5 w-5" />,
+    'attendance': <Calendar className="h-5 w-5" />,
+    'social': <Users className="h-5 w-5" />,
+    'learning': <BookOpen className="h-5 w-5" />,
+    'communication': <MessageSquare className="h-5 w-5" />,
+    'streak': <Zap className="h-5 w-5" />,
+    'time': <Clock className="h-5 w-5" />,
+  };
+  
+  // Extract the category from the achievement id if possible
+  const parts = achievement.id.split('-');
+  if (parts.length > 1 && iconMap[parts[0]]) {
+    return iconMap[parts[0]];
+  }
+  
+  // Default icon
+  return <Star className="h-5 w-5" />;
+};
+
+const getAchievementColor = (achievement: Achievement) => {
+  const colorMap: Record<string, string> = {
+    'task-master': 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+    'attendance': 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    'social': 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+    'learning': 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+    'communication': 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400',
+    'streak': 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+    'time': 'bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400',
+  };
+  
+  // Extract the category from the achievement id if possible
+  const parts = achievement.id.split('-');
+  if (parts.length > 1 && colorMap[parts[0]]) {
+    return colorMap[parts[0]];
+  }
+  
+  // Default color
+  return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400';
+};
+
+const mockAchievements: Achievement[] = [
+  {
+    id: 'task-master-1',
+    title: 'Task Master',
+    description: 'Complete 10 tasks',
+    icon: <FileCheck />,
+    points: 100,
+    progress: 10,
+    maxProgress: 10,
+    earnedAt: '2025-04-15T10:30:00Z'
+  },
+  {
+    id: 'attendance-1',
+    title: 'Perfect Attendance',
+    description: 'Attend 5 consecutive classes',
+    icon: <Calendar />,
+    points: 50,
+    progress: 5,
+    maxProgress: 5,
+    earnedAt: '2025-04-10T14:20:00Z'
+  },
+  {
+    id: 'social-1',
+    title: 'Social Butterfly',
+    description: 'Join 3 study groups',
+    icon: <Users />,
+    points: 75,
+    progress: 2,
+    maxProgress: 3
+  },
+  {
+    id: 'learning-1',
+    title: 'Knowledge Seeker',
+    description: 'Access learning resources 15 times',
+    icon: <BookOpen />,
+    points: 150,
+    progress: 8,
+    maxProgress: 15
+  },
+  {
+    id: 'communication-1',
+    title: 'Active Communicator',
+    description: 'Send 20 messages in group chats',
+    icon: <MessageSquare />,
+    points: 80,
+    progress: 12,
+    maxProgress: 20
+  },
+  {
+    id: 'streak-1',
+    title: 'On a Roll',
+    description: 'Login for 7 consecutive days',
+    icon: <Zap />,
+    points: 70,
+    progress: 4,
+    maxProgress: 7
+  },
+  {
+    id: 'time-1',
+    title: 'Time Manager',
+    description: 'Create 5 scheduled events',
+    icon: <Clock />,
+    points: 60,
+    progress: 3,
+    maxProgress: 5
+  }
+];
 
 const AchievementsPage = () => {
-  const [userPoints, setUserPoints] = useState(820); // Mock user points
+  const { 
+    achievements: contextAchievements, 
+    userPoints, 
+    getShareableLink, 
+    updateAchievementProgress 
+  } = useAchievements();
+  
+  const [achievements, setAchievements] = useState<Achievement[]>(
+    contextAchievements.length > 0 ? contextAchievements : mockAchievements
+  );
+  
+  const isMobile = useIsMobile();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   
-  // Sort achievements by earned first, then by progress percentage
-  const sortedAchievements = [...achievements].sort((a, b) => {
-    if (!!a.earnedAt !== !!b.earnedAt) {
-      return a.earnedAt ? -1 : 1;
+  const handleShare = () => {
+    try {
+      const shareableLink = getShareableLink();
+      navigator.clipboard.writeText(shareableLink);
+      
+      toast({
+        title: "Link copied to clipboard",
+        description: "Share this link with others to show off your achievements!",
+      });
+      
+      setIsShareDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error creating shareable link",
+        description: "Please try again later",
+        variant: "destructive",
+      });
     }
-    
-    const aProgress = (a.progress / a.maxProgress) * 100;
-    const bProgress = (b.progress / b.maxProgress) * 100;
-    
-    return bProgress - aProgress;
-  });
-  
-  // Get total earned achievements
-  const earnedAchievements = achievements.filter(a => a.earnedAt).length;
-  
-  // Get total achievement points
-  const totalPoints = achievements.reduce((sum, achievement) => {
-    return achievement.earnedAt ? sum + achievement.points : sum;
-  }, 0);
-  
-  // Get completed tasks count - using 3 as a mock value since 'tasks' is undefined
-  const completedTasks = 3;
-  
-  // Mock sharing functionality
-  const shareAchievements = () => {
-    toast({
-      title: "Sharing achievements",
-      description: "Your achievements have been shared to your profile.",
-    });
   };
-  
-  // Format date for display
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-    
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+
+  const calculateLevel = (points: number) => {
+    // Simple level calculation
+    return Math.floor(points / 100) + 1;
   };
+
+  const userLevel = calculateLevel(userPoints);
+  const pointsToNextLevel = (userLevel * 100) - userPoints;
+  const levelProgress = (userPoints % 100);
   
-  // Achievement card component
-  const AchievementCard = ({ achievement }: { achievement: Achievement }) => {
-    const progressPercentage = (achievement.progress / achievement.maxProgress) * 100;
-    const isCompleted = !!achievement.earnedAt;
-    
-    return (
-      <Card className={`${isCompleted ? 'border-green-200 bg-green-50' : ''}`}>
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center">
-              <div className={`text-3xl mr-3 ${isCompleted ? 'animate-pulse' : ''}`}>
-                {achievement.icon}
-              </div>
-              <div>
-                <CardTitle className="text-lg">{achievement.title}</CardTitle>
-                <CardDescription>
-                  {achievement.description}
-                </CardDescription>
-              </div>
+  // Simulate progress update
+  const handleIncrementProgress = (achievement: Achievement) => {
+    if (achievement.progress < achievement.maxProgress) {
+      updateAchievementProgress(achievement.id, achievement.progress + 1);
+    }
+  };
+
+  // Filter achievements by category
+  const filteredAchievements = activeFilter 
+    ? achievements.filter(achievement => achievement.id.startsWith(activeFilter))
+    : achievements;
+  
+  // Split achievements into earned and in-progress
+  const earnedAchievements = filteredAchievements.filter(achievement => achievement.earnedAt);
+  const inProgressAchievements = filteredAchievements.filter(achievement => !achievement.earnedAt);
+  
+  // Achievement categories
+  const categories = [
+    { id: 'task-master', name: 'Tasks', icon: <FileCheck className="h-4 w-4" /> },
+    { id: 'attendance', name: 'Attendance', icon: <Calendar className="h-4 w-4" /> },
+    { id: 'social', name: 'Social', icon: <Users className="h-4 w-4" /> },
+    { id: 'learning', name: 'Learning', icon: <BookOpen className="h-4 w-4" /> },
+    { id: 'communication', name: 'Communication', icon: <MessageSquare className="h-4 w-4" /> },
+    { id: 'streak', name: 'Streaks', icon: <Zap className="h-4 w-4" /> },
+    { id: 'time', name: 'Time', icon: <Clock className="h-4 w-4" /> },
+  ];
+
+  const AchievementItem = ({ achievement }: { achievement: Achievement }) => (
+    <Card 
+      key={achievement.id} 
+      className={`transition-all ${achievement.earnedAt ? 'border-yellow-200 dark:border-yellow-900/50' : ''}`}
+      onClick={() => setSelectedAchievement(achievement)}
+    >
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div className={`w-10 h-10 rounded-full ${getAchievementColor(achievement)} flex items-center justify-center`}>
+            {getAchievementIcon(achievement)}
+          </div>
+          
+          <div className="flex items-center">
+            <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 font-semibold px-2 py-1 rounded text-xs flex items-center">
+              <Trophy className="h-3 w-3 mr-1" />
+              {achievement.points} pts
             </div>
-            <div className="text-center">
-              <div className="text-xl font-bold">{achievement.points}</div>
-              <div className="text-xs text-muted-foreground">points</div>
-            </div>
+          </div>
+        </div>
+        <CardTitle className="text-lg mt-2">{achievement.title}</CardTitle>
+        <CardDescription>{achievement.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Progress</span>
+            <span>{achievement.progress}/{achievement.maxProgress}</span>
+          </div>
+          <Progress value={(achievement.progress / achievement.maxProgress) * 100} />
+          
+          {achievement.earnedAt && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Earned on {new Date(achievement.earnedAt).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="container mx-auto p-4">
+      {/* Achievement Level Card */}
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl flex items-center">
+              <Award className="mr-2 h-6 w-6 text-yellow-500" />
+              My Achievements
+            </CardTitle>
+            <Button variant="outline" onClick={() => setIsShareDialogOpen(true)}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <div>Progress</div>
-              <div>
-                {achievement.progress}/{achievement.maxProgress}
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            <div className="flex items-center gap-4">
+              <div className="h-20 w-20 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400 text-2xl font-bold border-4 border-yellow-200 dark:border-yellow-800/50">
+                {userLevel}
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-semibold">Level {userLevel}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {pointsToNextLevel} points to next level
+                </p>
               </div>
             </div>
-            <Progress value={progressPercentage} className="h-2" />
-            {isCompleted && (
-              <div className="text-xs text-green-600 font-medium">
-                Completed on {formatDate(achievement.earnedAt)}
+            
+            <div className="flex-1 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>{userPoints} points</span>
+                <span>{userLevel * 100} points</span>
               </div>
-            )}
+              <Progress value={levelProgress} className="h-2" />
+            </div>
+          </div>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
+              <h4 className="text-sm text-muted-foreground mb-1">Total Points</h4>
+              <p className="text-2xl font-semibold">{userPoints}</p>
+            </div>
+            <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg">
+              <h4 className="text-sm text-muted-foreground mb-1">Earned</h4>
+              <p className="text-2xl font-semibold">{earnedAchievements.length}</p>
+            </div>
+            <div className="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg">
+              <h4 className="text-sm text-muted-foreground mb-1">In Progress</h4>
+              <p className="text-2xl font-semibold">{inProgressAchievements.length}</p>
+            </div>
+            <div className="bg-purple-50 dark:bg-purple-950/30 p-3 rounded-lg">
+              <h4 className="text-sm text-muted-foreground mb-1">Completion</h4>
+              <p className="text-2xl font-semibold">
+                {achievements.length > 0
+                  ? `${Math.round((earnedAchievements.length / achievements.length) * 100)}%`
+                  : '0%'}
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
-    );
-  };
-  
-  // Leaderboard entry component
-  const LeaderboardEntryCard = ({ entry, position }: { entry: LeaderboardEntry; position: number }) => {
-    const isCurrentUser = entry.id === 'user-1';
-    
-    return (
-      <div 
-        className={`flex items-center p-3 rounded-lg ${
-          isCurrentUser 
-            ? 'bg-edvantage-light-blue border border-edvantage-blue' 
-            : position <= 3 
-              ? 'bg-amber-50 border border-amber-200' 
-              : 'bg-gray-50 border border-gray-200'
-        }`}
-      >
-        <div 
-          className={`flex items-center justify-center h-8 w-8 rounded-full font-bold text-white ${
-            position === 1 
-              ? 'bg-yellow-500' 
-              : position === 2 
-                ? 'bg-gray-400' 
-                : position === 3 
-                  ? 'bg-amber-700' 
-                  : 'bg-gray-600'
-          }`}
-        >
-          {position}
-        </div>
-        <div className="ml-4 flex-1">
-          <div className="flex items-center">
-            <div className="font-medium">{entry.name}</div>
-            {isCurrentUser && (
-              <div className="ml-2 text-xs bg-edvantage-blue text-white px-1.5 py-0.5 rounded-full">
-                You
-              </div>
-            )}
-            <div className="ml-auto font-semibold">{entry.points} pts</div>
-          </div>
-          <div className="text-xs text-muted-foreground flex items-center mt-1">
-            <span>{entry.level}</span>
-            <span className="mx-1.5">•</span>
-            <span>{entry.achievements} achievements</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Achievements & Rewards</h1>
-        <Button onClick={shareAchievements}>
-          <Share2 className="h-4 w-4 mr-2" />
-          Share Achievements
-        </Button>
-      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center text-center">
-              <Award className="h-10 w-10 text-edvantage-blue mb-2" />
-              <h3 className="text-3xl font-bold">{userPoints}</h3>
-              <p className="text-sm text-muted-foreground">Total Points</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center text-center">
-              <Trophy className="h-10 w-10 text-yellow-500 mb-2" />
-              <h3 className="text-3xl font-bold">{earnedAchievements}</h3>
-              <p className="text-sm text-muted-foreground">Achievements Earned</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center text-center">
-              <Target className="h-10 w-10 text-green-500 mb-2" />
-              <h3 className="text-3xl font-bold">{completedTasks}</h3>
-              <p className="text-sm text-muted-foreground">Tasks Completed</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center text-center">
-              <Crown className="h-10 w-10 text-purple-500 mb-2" />
-              <h3 className="text-3xl font-bold">
-                {leaderboard.findIndex(entry => entry.id === 'user-1') + 1}
-              </h3>
-              <p className="text-sm text-muted-foreground">Current Rank</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Tabs defaultValue="achievements">
-        <TabsList className="mb-6">
-          <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-          <TabsTrigger value="rewards">Rewards</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="achievements">
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedAchievements.map(achievement => (
-                <AchievementCard key={achievement.id} achievement={achievement} />
-              ))}
-            </div>
+      {/* Filters and Achievements Content */}
+      {isMobile ? (
+        <div className="space-y-4">
+          {/* Mobile Filters - Dropdown */}
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg font-semibold">Achievements</h3>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  {activeFilter ? 
+                    categories.find(c => c.id === activeFilter)?.name : 
+                    'Filter'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setActiveFilter(null)}>
+                  All Categories
+                </DropdownMenuItem>
+                {categories.map((category) => (
+                  <DropdownMenuItem 
+                    key={category.id}
+                    onClick={() => setActiveFilter(category.id)}
+                    className="flex items-center"
+                  >
+                    <span className="mr-2">{category.icon}</span>
+                    {category.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="leaderboard">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="col-span-1 md:col-span-2 space-y-3">
-              <h2 className="text-lg font-semibold mb-3">Global Leaderboard</h2>
-              {leaderboard.map((entry, index) => (
-                <LeaderboardEntryCard 
-                  key={entry.id} 
-                  entry={entry} 
-                  position={index + 1} 
-                />
-              ))}
-              <Button variant="outline" className="w-full mt-4">
-                View Full Leaderboard
-              </Button>
-            </div>
+          
+          {/* Mobile Tabs */}
+          <Tabs defaultValue="earned">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="earned" className="flex items-center gap-2">
+                <Trophy className="h-4 w-4" />
+                Earned ({earnedAchievements.length})
+              </TabsTrigger>
+              <TabsTrigger value="in-progress" className="flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                In Progress ({inProgressAchievements.length})
+              </TabsTrigger>
+            </TabsList>
             
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Your Position</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex items-center">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src="https://i.pravatar.cc/150?img=1" alt="John Doe" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                    <div className="ml-4">
-                      <h3 className="font-medium">John Doe</h3>
-                      <p className="text-sm text-muted-foreground">Computer Science, 300 Level</p>
-                      <div className="flex items-center mt-1">
-                        <Award className="h-4 w-4 text-yellow-500 mr-1" />
-                        <span className="text-sm font-medium">{userPoints} points</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-edvantage-light-blue rounded-lg">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm">Next milestone:</span>
-                      <span className="text-sm font-medium">1000 points</span>
-                    </div>
-                    <Progress value={userPoints / 10} className="h-2" />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {1000 - userPoints} more points to reach the next milestone
+            <TabsContent value="earned" className="mt-4">
+              <div className="space-y-4">
+                {earnedAchievements.length > 0 ? (
+                  earnedAchievements.map(achievement => (
+                    <AchievementItem key={achievement.id} achievement={achievement} />
+                  ))
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <h3 className="text-lg font-medium mb-1">No achievements yet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Complete tasks and activities to earn achievements
                     </p>
                   </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Leaderboard Stats</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Your department rank:</span>
-                      <span className="font-medium">3rd of 145</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Level rank:</span>
-                      <span className="font-medium">12th of 240</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Weekly gain:</span>
-                      <div className="flex items-center text-green-600">
-                        <ArrowUpRight className="h-3 w-3 mr-1" />
-                        <span className="font-medium">+120 points</span>
-                      </div>
-                    </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="in-progress" className="mt-4">
+              <div className="space-y-4">
+                {inProgressAchievements.length > 0 ? (
+                  inProgressAchievements.map(achievement => (
+                    <AchievementItem key={achievement.id} achievement={achievement} />
+                  ))
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <Star className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <h3 className="text-lg font-medium mb-1">All achievements completed!</h3>
+                    <p className="text-sm text-muted-foreground">
+                      You've earned all available achievements
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      ) : (
+        // Desktop view
+        <div className="grid grid-cols-4 gap-6">
+          {/* Desktop Categories/Filters Sidebar */}
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>Categories</CardTitle>
+            </CardHeader>
+            <CardContent className="px-2">
+              <div className="space-y-1">
+                <Button 
+                  variant={activeFilter === null ? "default" : "ghost"} 
+                  className="w-full justify-start" 
+                  onClick={() => setActiveFilter(null)}
+                >
+                  <Award className="h-4 w-4 mr-2" />
+                  All Categories
+                </Button>
+                
+                {categories.map((category) => (
+                  <Button 
+                    key={category.id}
+                    variant={activeFilter === category.id ? "default" : "ghost"} 
+                    className="w-full justify-start" 
+                    onClick={() => setActiveFilter(category.id)}
+                  >
+                    {category.icon}
+                    <span className="ml-2">{category.name}</span>
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Desktop Achievements Content */}
+          <div className="col-span-3 space-y-6">
+            <Tabs defaultValue="earned">
+              <TabsList>
+                <TabsTrigger value="earned" className="flex items-center">
+                  <Trophy className="h-4 w-4 mr-2" />
+                  Earned ({earnedAchievements.length})
+                </TabsTrigger>
+                <TabsTrigger value="in-progress" className="flex items-center">
+                  <Star className="h-4 w-4 mr-2" />
+                  In Progress ({inProgressAchievements.length})
+                </TabsTrigger>
+              </TabsList>
               
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Weekly Challenges</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm">Complete 5 tasks</span>
-                        <span className="text-sm font-medium">3/5</span>
-                      </div>
-                      <Progress value={60} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Reward: 50 points
+              <TabsContent value="earned" className="mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {earnedAchievements.length > 0 ? (
+                    earnedAchievements.map(achievement => (
+                      <AchievementItem key={achievement.id} achievement={achievement} />
+                    ))
+                  ) : (
+                    <div className="col-span-2 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                      <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-medium mb-2">No achievements earned yet</h3>
+                      <p className="text-muted-foreground">
+                        Complete tasks and activities to earn achievements
                       </p>
                     </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm">Join a study group</span>
-                        <span className="text-sm font-medium">0/1</span>
-                      </div>
-                      <Progress value={0} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Reward: 30 points
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="in-progress" className="mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {inProgressAchievements.length > 0 ? (
+                    inProgressAchievements.map(achievement => (
+                      <AchievementItem key={achievement.id} achievement={achievement} />
+                    ))
+                  ) : (
+                    <div className="col-span-2 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                      <Star className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-medium mb-2">All achievements completed!</h3>
+                      <p className="text-muted-foreground">
+                        You've earned all available achievements
                       </p>
                     </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm">Upload a resource</span>
-                        <span className="text-sm font-medium">0/1</span>
-                      </div>
-                      <Progress value={0} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Reward: 40 points
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="pt-2">
-                  <p className="text-xs text-muted-foreground">
-                    <Clock className="inline h-3 w-3 mr-1" />
-                    Challenges reset in 3 days, 5 hours
-                  </p>
-                </CardFooter>
-              </Card>
-            </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="rewards">
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Premium Features</CardTitle>
-                  <CardDescription>
-                    Unlock enhanced app functionality
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-6">
-                    <Shield className="h-16 w-16 text-edvantage-blue mx-auto mb-4" />
-                    <div className="text-lg font-medium mb-1">Advanced AI Support</div>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      Get unlimited access to enhanced AI study support and analysis
-                    </div>
-                    <div className="text-2xl font-bold text-edvantage-blue mb-2">
-                      1,500 points
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full" 
-                    disabled={userPoints < 1500}
-                    onClick={() => {
-                      toast({
-                        title: "Insufficient points",
-                        description: "You need 1,500 points to unlock this reward.",
-                      });
-                    }}
-                  >
-                    Claim Reward
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Digital Badge</CardTitle>
-                  <CardDescription>
-                    Show off your achievements
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-6">
-                    <Award className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-                    <div className="text-lg font-medium mb-1">"Productivity Master"</div>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      Display this exclusive badge on your profile and in groups
-                    </div>
-                    <div className="text-2xl font-bold text-edvantage-blue mb-2">
-                      800 points
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full"
-                    onClick={() => {
-                      toast({
-                        title: "Badge claimed",
-                        description: "The 'Productivity Master' badge has been added to your profile.",
-                      });
-                      setUserPoints(prev => prev - 800);
-                    }}
-                  >
-                    Claim Reward
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Study Resources</CardTitle>
-                  <CardDescription>
-                    Access premium study guides
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-6">
-                    <BookOpen className="h-16 w-16 text-purple-500 mx-auto mb-4" />
-                    <div className="text-lg font-medium mb-1">Premium Study Materials</div>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      Unlock exclusive study guides and practice materials
-                    </div>
-                    <div className="text-2xl font-bold text-edvantage-blue mb-2">
-                      500 points
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full"
-                    onClick={() => {
-                      toast({
-                        title: "Resources unlocked",
-                        description: "You now have access to premium study materials.",
-                      });
-                      setUserPoints(prev => prev - 500);
-                    }}
-                  >
-                    Claim Reward
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Custom Theme</CardTitle>
-                  <CardDescription>
-                    Personalize your Edvantage experience
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-6">
-                    <Palette className="h-16 w-16 text-pink-500 mx-auto mb-4" />
-                    <div className="text-lg font-medium mb-1">Custom App Theme</div>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      Choose from exclusive color schemes and personalization options
-                    </div>
-                    <div className="text-2xl font-bold text-edvantage-blue mb-2">
-                      300 points
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full"
-                    onClick={() => {
-                      toast({
-                        title: "Custom themes unlocked",
-                        description: "You can now customize your app's appearance in Settings.",
-                      });
-                      setUserPoints(prev => prev - 300);
-                    }}
-                  >
-                    Claim Reward
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Priority Support</CardTitle>
-                  <CardDescription>
-                    Get faster responses to your questions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-6">
-                    <Headset className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-                    <div className="text-lg font-medium mb-1">Premium Support</div>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      Get priority support and responses for your questions and issues
-                    </div>
-                    <div className="text-2xl font-bold text-edvantage-blue mb-2">
-                      1,000 points
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full"
-                    disabled={userPoints < 1000}
-                    onClick={() => {
-                      toast({
-                        title: "Insufficient points",
-                        description: "You need 1,000 points to unlock this reward.",
-                      });
-                    }}
-                  >
-                    Claim Reward
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Group Creation</CardTitle>
-                  <CardDescription>
-                    Create advanced study groups
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-6">
-                    <Users className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                    <div className="text-lg font-medium mb-1">Advanced Group Features</div>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      Create groups with enhanced tools and larger member limits
-                    </div>
-                    <div className="text-2xl font-bold text-edvantage-blue mb-2">
-                      700 points
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full"
-                    onClick={() => {
-                      toast({
-                        title: "Advanced groups unlocked",
-                        description: "You can now create groups with enhanced features.",
-                      });
-                      setUserPoints(prev => prev - 700);
-                    }}
-                  >
-                    Claim Reward
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
+      
+      {/* Share Dialog */}
+      <AlertDialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Share Your Achievements</AlertDialogTitle>
+            <AlertDialogDescription>
+              Share your achievements with friends and classmates. A unique link will be generated that shows your progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleShare}>Generate Link</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

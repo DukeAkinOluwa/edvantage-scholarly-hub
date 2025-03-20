@@ -9,6 +9,7 @@ import Contact from './pages/Contact';
 import Team from './pages/Team';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
@@ -87,6 +88,7 @@ function App() {
               } />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/onboarding" element={<Onboarding />} />
               
               {/* Protected Dashboard Routes */}

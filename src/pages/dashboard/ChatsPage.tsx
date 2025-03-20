@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,9 +7,23 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Search, Send, Users, User, Plus, Phone, Video, MoreHorizontal } from 'lucide-react';
+import { 
+  Search, 
+  Send, 
+  Users, 
+  User, 
+  Plus, 
+  Phone, 
+  Video, 
+  MoreHorizontal, 
+  ArrowLeft, 
+  File, 
+  X 
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import SharedResources from '@/components/chats/SharedResources';
 
 interface Message {
   id: string;
@@ -139,6 +152,7 @@ const mockGroups: Group[] = [
 const ChatsPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [activeGroup, setActiveGroup] = useState<Group | null>(null);
   const [message, setMessage] = useState('');
@@ -146,6 +160,8 @@ const ChatsPage: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>(mockGroups);
   const [activeTab, setActiveTab] = useState('direct');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showingSharedResources, setShowingSharedResources] = useState(false);
+  const [sharedResourcesUserId, setSharedResourcesUserId] = useState<string | null>(null);
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -224,6 +240,18 @@ const ChatsPage: React.FC = () => {
     }
   };
 
+  const handleBackToList = () => {
+    if (isMobile) {
+      setActiveChat(null);
+      setActiveGroup(null);
+    }
+  };
+
+  const handleOpenSharedResources = (userId: string) => {
+    setSharedResourcesUserId(userId);
+    setShowingSharedResources(true);
+  };
+
   const filteredChats = chats.filter(chat => 
     chat.participantName.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -232,10 +260,304 @@ const ChatsPage: React.FC = () => {
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (showingSharedResources && sharedResourcesUserId) {
+    return (
+      <div className="container mx-auto p-4 h-[80vh]">
+        <SharedResources 
+          userId={sharedResourcesUserId} 
+          onClose={() => {
+            setShowingSharedResources(false);
+            setSharedResourcesUserId(null);
+          }} 
+        />
+      </div>
+    );
+  }
+
+  if (isMobile) {
+    if (activeChat || activeGroup) {
+      return (
+        <div className="container mx-auto p-4 h-[80vh]">
+          <Card className="h-full overflow-hidden flex flex-col">
+            <div className="p-3 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={handleBackToList}>
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    className="cursor-pointer" 
+                    onClick={() => {
+                      if (activeChat) {
+                        handleOpenSharedResources(activeChat.participantId);
+                      }
+                    }}
+                  >
+                    {activeChat ? (
+                      <>
+                        <AvatarImage src={activeChat.participantAvatar} />
+                        <AvatarFallback>{activeChat.participantName.charAt(0)}</AvatarFallback>
+                      </>
+                    ) : activeGroup ? (
+                      <>
+                        {activeGroup.avatar ? (
+                          <AvatarImage src={activeGroup.avatar} />
+                        ) : (
+                          <AvatarFallback className="bg-blue-500">
+                            <Users className="h-4 w-4 text-white" />
+                          </AvatarFallback>
+                        )}
+                      </>
+                    ) : null}
+                  </Avatar>
+                  <div>
+                    <h3 className="font-medium text-sm">
+                      {activeChat ? activeChat.participantName : activeGroup?.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {activeChat ? 'Online' : activeGroup ? `${activeGroup.members.length} members` : ''}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <ScrollArea className="flex-1 p-4">
+              {activeChat ? (
+                <div className="space-y-4">
+                  {activeChat.messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] p-3 rounded-lg ${
+                          msg.senderId === user?.id
+                            ? 'bg-blue-500 text-white rounded-br-none'
+                            : 'bg-gray-100 dark:bg-gray-800 rounded-bl-none'
+                        }`}
+                      >
+                        <p>{msg.content}</p>
+                        <p className={`text-xs mt-1 ${
+                          msg.senderId === user?.id ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : activeGroup ? (
+                <div>
+                  <div className="mb-6 text-center">
+                    <h4 className="text-lg font-medium mb-2">{activeGroup.name}</h4>
+                    <p className="text-sm text-muted-foreground mb-4">Group created for collaborative study</p>
+                    
+                    <div className="flex justify-center mb-4">
+                      <div className="flex -space-x-2">
+                        {activeGroup.members.slice(0, 5).map(member => (
+                          <Avatar key={member.id} className="border-2 border-background">
+                            <AvatarImage src={member.avatar} />
+                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                        ))}
+                        {activeGroup.members.length > 5 && (
+                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted border-2 border-background">
+                            <span className="text-xs font-medium">+{activeGroup.members.length - 5}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="text-center mb-8">
+                      <h5 className="font-medium mb-2">Group Members</h5>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {activeGroup.members.map(member => (
+                          <Button
+                            key={member.id}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2"
+                            onClick={() => startChatWithGroupMember(activeGroup.id, member.id)}
+                          >
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={member.avatar} />
+                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span>{member.name}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <Separator className="my-4" />
+                    
+                    <p className="text-sm text-muted-foreground">Group messages coming soon!</p>
+                  </div>
+                </div>
+              ) : null}
+            </ScrollArea>
+            
+            <div className="p-3 border-t">
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon">
+                  <File className="h-5 w-5 text-muted-foreground" />
+                </Button>
+                <Input
+                  placeholder="Type a message..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                />
+                <Button onClick={handleSendMessage} className="flex-shrink-0">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="container mx-auto p-4 h-[80vh]">
+        <Card className="h-full overflow-hidden flex flex-col">
+          <CardHeader className="pb-3">
+            <CardTitle>Messages</CardTitle>
+            <div className="relative mt-2">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                className="pl-8" 
+                placeholder="Search chats..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </CardHeader>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+            <TabsList className="grid grid-cols-2 mx-4">
+              <TabsTrigger value="direct" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span>Direct</span>
+              </TabsTrigger>
+              <TabsTrigger value="groups" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span>Groups</span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="direct" className="flex-1 overflow-hidden flex flex-col">
+              <ScrollArea className="flex-1 p-3">
+                {filteredChats.length > 0 ? (
+                  <div className="space-y-2">
+                    {filteredChats.map(chat => (
+                      <div 
+                        key={chat.id}
+                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                        onClick={() => { setActiveChat(chat); setActiveGroup(null); }}
+                      >
+                        <Avatar>
+                          <AvatarImage src={chat.participantAvatar} />
+                          <AvatarFallback>{chat.participantName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium truncate">{chat.participantName}</h4>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">{chat.lastMessageTime}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
+                        </div>
+                        {chat.unreadCount > 0 && (
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
+                            {chat.unreadCount}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                    <User className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="font-medium mb-1">No conversations yet</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Start a new conversation with another user</p>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Chat
+                    </Button>
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+            
+            <TabsContent value="groups" className="flex-1 overflow-hidden flex flex-col">
+              <ScrollArea className="flex-1 p-3">
+                {filteredGroups.length > 0 ? (
+                  <div className="space-y-2">
+                    {filteredGroups.map(group => (
+                      <div 
+                        key={group.id}
+                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                        onClick={() => { setActiveGroup(group); setActiveChat(null); }}
+                      >
+                        <Avatar>
+                          {group.avatar ? (
+                            <AvatarImage src={group.avatar} />
+                          ) : (
+                            <AvatarFallback className="bg-blue-500">
+                              <Users className="h-4 w-4 text-white" />
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium truncate">{group.name}</h4>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">{group.lastMessageTime}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">{group.lastMessage}</p>
+                        </div>
+                        {group.unreadCount > 0 && (
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
+                            {group.unreadCount}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                    <Users className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="font-medium mb-1">No groups yet</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Join or create a study group</p>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Group
+                    </Button>
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[80vh]">
-        {/* Chat List Sidebar */}
         <Card className="lg:col-span-1 overflow-hidden flex flex-col h-full">
           <CardHeader className="pb-3">
             <CardTitle>Messages</CardTitle>
@@ -355,135 +677,166 @@ const ChatsPage: React.FC = () => {
           </Tabs>
         </Card>
         
-        {/* Chat Area */}
-        <Card className="lg:col-span-2 overflow-hidden flex flex-col h-full">
-          {(activeChat || activeGroup) ? (
-            <>
-              {/* Chat Header */}
-              <div className="p-4 border-b flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    {activeChat ? (
-                      <>
-                        <AvatarImage src={activeChat.participantAvatar} />
-                        <AvatarFallback>{activeChat.participantName.charAt(0)}</AvatarFallback>
-                      </>
-                    ) : activeGroup ? (
-                      <>
-                        {activeGroup.avatar ? (
-                          <AvatarImage src={activeGroup.avatar} />
-                        ) : (
-                          <AvatarFallback className="bg-blue-500">
-                            <Users className="h-4 w-4 text-white" />
-                          </AvatarFallback>
-                        )}
-                      </>
-                    ) : null}
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium">
-                      {activeChat ? activeChat.participantName : activeGroup?.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {activeChat ? 'Online' : activeGroup ? `${activeGroup.members.length} members` : ''}
-                    </p>
+        {showingSharedResources && sharedResourcesUserId ? (
+          <Card className="lg:col-span-2 overflow-hidden flex flex-col h-full">
+            <SharedResources 
+              userId={sharedResourcesUserId} 
+              onClose={() => {
+                setShowingSharedResources(false);
+                setSharedResourcesUserId(null);
+              }} 
+            />
+          </Card>
+        ) : (
+          <Card className="lg:col-span-2 overflow-hidden flex flex-col h-full">
+            {(activeChat || activeGroup) ? (
+              <>
+                <div className="p-4 border-b flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      className="cursor-pointer"
+                      onClick={() => {
+                        if (activeChat) {
+                          handleOpenSharedResources(activeChat.participantId);
+                        }
+                      }}
+                    >
+                      {activeChat ? (
+                        <>
+                          <AvatarImage src={activeChat.participantAvatar} />
+                          <AvatarFallback>{activeChat.participantName.charAt(0)}</AvatarFallback>
+                        </>
+                      ) : activeGroup ? (
+                        <>
+                          {activeGroup.avatar ? (
+                            <AvatarImage src={activeGroup.avatar} />
+                          ) : (
+                            <AvatarFallback className="bg-blue-500">
+                              <Users className="h-4 w-4 text-white" />
+                            </AvatarFallback>
+                          )}
+                        </>
+                      ) : null}
+                    </Avatar>
+                    <div>
+                      <h3 className="font-medium">
+                        {activeChat ? activeChat.participantName : activeGroup?.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {activeChat ? (
+                          <span className="flex items-center gap-1">
+                            Online
+                            <Button 
+                              variant="link" 
+                              className="h-auto p-0 text-xs" 
+                              onClick={() => {
+                                if (activeChat) {
+                                  handleOpenSharedResources(activeChat.participantId);
+                                }
+                              }}
+                            >
+                              View shared resources
+                            </Button>
+                          </span>
+                        ) : activeGroup ? `${activeGroup.members.length} members` : ''}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Phone className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Video className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <Video className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Messages Area */}
-              <ScrollArea className="flex-1 p-4">
-                {activeChat ? (
-                  <div className="space-y-4">
-                    {activeChat.messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
-                      >
+                <ScrollArea className="flex-1 p-4">
+                  {activeChat ? (
+                    <div className="space-y-4">
+                      {activeChat.messages.map((msg) => (
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            msg.senderId === user?.id
-                              ? 'bg-blue-500 text-white rounded-br-none'
-                              : 'bg-gray-100 dark:bg-gray-800 rounded-bl-none'
-                          }`}
+                          key={msg.id}
+                          className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
                         >
-                          <p>{msg.content}</p>
-                          <p className={`text-xs mt-1 ${
-                            msg.senderId === user?.id ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
-                          }`}>
-                            {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
+                          <div
+                            className={`max-w-[80%] p-3 rounded-lg ${
+                              msg.senderId === user?.id
+                                ? 'bg-blue-500 text-white rounded-br-none'
+                                : 'bg-gray-100 dark:bg-gray-800 rounded-bl-none'
+                            }`}
+                          >
+                            <p>{msg.content}</p>
+                            <p className={`text-xs mt-1 ${
+                              msg.senderId === user?.id ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                            }`}>
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : activeGroup ? (
-                  <div>
-                    <div className="mb-6 text-center">
-                      <h4 className="text-lg font-medium mb-2">{activeGroup.name}</h4>
-                      <p className="text-sm text-muted-foreground mb-4">Group created for collaborative study</p>
-                      
-                      <div className="flex justify-center mb-4">
-                        <div className="flex -space-x-2">
-                          {activeGroup.members.slice(0, 5).map(member => (
-                            <Avatar key={member.id} className="border-2 border-background">
-                              <AvatarImage src={member.avatar} />
-                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                          ))}
-                          {activeGroup.members.length > 5 && (
-                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted border-2 border-background">
-                              <span className="text-xs font-medium">+{activeGroup.members.length - 5}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="text-center mb-8">
-                        <h5 className="font-medium mb-2">Group Members</h5>
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {activeGroup.members.map(member => (
-                            <Button
-                              key={member.id}
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center gap-2"
-                              onClick={() => startChatWithGroupMember(activeGroup.id, member.id)}
-                            >
-                              <Avatar className="h-6 w-6">
+                      ))}
+                    </div>
+                  ) : activeGroup ? (
+                    <div>
+                      <div className="mb-6 text-center">
+                        <h4 className="text-lg font-medium mb-2">{activeGroup.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-4">Group created for collaborative study</p>
+                        
+                        <div className="flex justify-center mb-4">
+                          <div className="flex -space-x-2">
+                            {activeGroup.members.slice(0, 5).map(member => (
+                              <Avatar key={member.id} className="border-2 border-background">
                                 <AvatarImage src={member.avatar} />
                                 <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                               </Avatar>
-                              <span>{member.name}</span>
-                            </Button>
-                          ))}
+                            ))}
+                            {activeGroup.members.length > 5 && (
+                              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted border-2 border-background">
+                                <span className="text-xs font-medium">+{activeGroup.members.length - 5}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
+                        
+                        <div className="text-center mb-8">
+                          <h5 className="font-medium mb-2">Group Members</h5>
+                          <div className="flex flex-wrap justify-center gap-2">
+                            {activeGroup.members.map(member => (
+                              <Button
+                                key={member.id}
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => startChatWithGroupMember(activeGroup.id, member.id)}
+                              >
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={member.avatar} />
+                                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>{member.name}</span>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <Separator className="my-4" />
+                        
+                        <p className="text-sm text-muted-foreground">Group messages coming soon!</p>
                       </div>
-                      
-                      <Separator className="my-4" />
-                      
-                      <p className="text-sm text-muted-foreground">Group messages coming soon!</p>
                     </div>
-                  </div>
-                ) : null}
-              </ScrollArea>
-              
-              {/* Message Input */}
-              {activeChat && (
+                  ) : null}
+                </ScrollArea>
+                
                 <div className="p-4 border-t">
                   <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon">
+                      <File className="h-5 w-5 text-muted-foreground" />
+                    </Button>
                     <Input
                       placeholder="Type a message..."
                       value={message}
@@ -500,27 +853,28 @@ const ChatsPage: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-              )}
-            </>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center">
-              <div className="max-w-md text-center p-8">
-                <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h2 className="text-xl font-medium mb-2">Your Messages</h2>
-                <p className="text-muted-foreground mb-6">
-                  Select a conversation from the sidebar or start a new one
-                </p>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Start New Conversation
-                </Button>
+              </>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center">
+                <div className="max-w-md text-center p-8">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h2 className="text-xl font-medium mb-2">Your Messages</h2>
+                  <p className="text-muted-foreground mb-6">
+                    Select a conversation from the sidebar or start a new one
+                  </p>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Start New Conversation
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-        </Card>
+            )}
+          </Card>
+        )}
       </div>
     </div>
   );
 };
 
 export default ChatsPage;
+
