@@ -436,7 +436,8 @@ const AchievementsPage = () => {
                         className="w-full justify-start mb-2" 
                         onClick={() => {
                           setActiveFilter(null);
-                          document.querySelector('[data-drawer-close="true"]')?.click();
+                          const closeButton = document.querySelector('[data-drawer-close="true"]') as HTMLButtonElement | null;
+                          if (closeButton) closeButton.click();
                         }}
                       >
                         <Award className="h-4 w-4 mr-2" />
@@ -450,7 +451,8 @@ const AchievementsPage = () => {
                           className="w-full justify-start mb-2" 
                           onClick={() => {
                             setActiveFilter(category.id);
-                            document.querySelector('[data-drawer-close="true"]')?.click();
+                            const closeButton = document.querySelector('[data-drawer-close="true"]') as HTMLButtonElement | null;
+                            if (closeButton) closeButton.click();
                           }}
                         >
                           {category.icon}
