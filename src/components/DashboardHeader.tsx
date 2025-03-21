@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search, User, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,11 +13,64 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+interface Notification {
+  id: string,
+  title: string,
+  message: string,
+  time: string,
+  read: boolean,
+  type: 'message' | 'group' | 'achievement' | 'system'
+}
+
+// Mock notifications data
+const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    title: 'New Message',
+    message: 'Sarah Johnson sent you a message',
+    time: '5 min ago',
+    read: false,
+    type: 'message'
+  },
+  {
+    id: '2',
+    title: 'Group Invitation',
+    message: 'You were invited to join "Physics Study Group"',
+    time: '1 hour ago',
+    read: false,
+    type: 'group'
+  },
+  {
+    id: '3',
+    title: 'Achievement Unlocked',
+    message: 'You earned the "Study Streak" badge',
+    time: '3 hours ago',
+    read: true,
+    type: 'achievement'
+  },
+  {
+    id: '4',
+    title: 'System Update',
+    message: 'New features have been added to the platform',
+    time: '1 day ago',
+    read: true,
+    type: 'system'
+  }
+];
 
 const DashboardHeader: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  
+  // Get unread notifications count
+  const unreadCount = notifications.filter(n => !n.read).length;
   
   // Get the current page title from the path
   const getPageTitle = () => {
@@ -38,6 +91,41 @@ const DashboardHeader: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const markAllAsRead = () => {
+    const updatedNotifications = notifications.map(notification => ({
+      ...notification,
+      read: true
+    }));
+    setNotifications(updatedNotifications);
+  };
+
+  const markAsRead = (id: string) => {
+    const updatedNotifications = notifications.map(notification => 
+      notification.id === id ? { ...notification, read: true } : notification
+    );
+    setNotifications(updatedNotifications);
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    markAsRead(notification.id);
+    
+    // Navigate based on notification type
+    if (notification.type === 'message') {
+      navigate('/dashboard/communication');
+    } else if (notification.type === 'group') {
+      navigate('/dashboard/communication');
+    } else if (notification.type === 'achievement') {
+      navigate('/dashboard/achievements');
+    }
+    
+    setNotificationOpen(false);
+  };
+
+  const viewAllNotifications = () => {
+    setNotificationOpen(false);
+    navigate('/dashboard/communication');
   };
 
   return (
@@ -69,9 +157,60 @@ const DashboardHeader: React.FC = () => {
             <Search className="h-5 w-5" />
           </Button>
           
-          <Button variant="ghost" size="icon" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
-          </Button>
+          <DropdownMenu open={notificationOpen} onOpenChange={setNotificationOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 min-w-5 text-xs flex items-center justify-center px-1">
+                    {unreadCount}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel className="flex justify-between items-center">
+                <span>Notifications</span>
+                {unreadCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs h-8">
+                    Mark all as read
+                  </Button>
+                )}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              <ScrollArea className="h-[300px]">
+                {notifications.length > 0 ? (
+                  <div className="flex flex-col gap-1 px-1">
+                    {notifications.map((notification) => (
+                      <div 
+                        key={notification.id}
+                        className={`p-2 rounded-md cursor-pointer hover:bg-muted ${
+                          !notification.read ? 'bg-muted/50' : ''
+                        }`}
+                        onClick={() => handleNotificationClick(notification)}
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-medium text-sm">{notification.title}</span>
+                          <span className="text-xs text-muted-foreground">{notification.time}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{notification.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-4 py-8 text-center">
+                    <p className="text-muted-foreground">No notifications</p>
+                  </div>
+                )}
+              </ScrollArea>
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="justify-center" onClick={viewAllNotifications}>
+                View all notifications
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

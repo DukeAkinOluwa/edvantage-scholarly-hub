@@ -22,10 +22,8 @@ import ResourcesPage from './pages/dashboard/ResourcesPage';
 import AchievementsPage from './pages/dashboard/AchievementsPage';
 import AiSupportPage from './pages/dashboard/AiSupportPage';
 import CalendarPage from './pages/dashboard/CalendarPage';
-import GroupsPage from './pages/dashboard/GroupsPage';
 import GroupDetailPage from './pages/dashboard/GroupDetailPage';
-import NotificationsPage from './pages/dashboard/NotificationsPage';
-import ChatsPage from './pages/dashboard/ChatsPage';
+import CommunicationPage from './pages/dashboard/CommunicationPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import SchoolDashboard from './pages/admin/SchoolDashboard';
@@ -104,11 +102,9 @@ function App() {
                 <Route path="achievements" element={<AchievementsPage />} />
                 <Route path="ai-support" element={<AiSupportPage />} />
                 <Route path="calendar" element={<CalendarPage />} />
-                <Route path="groups" element={<GroupsPage />} />
+                <Route path="communication" element={<CommunicationPage />} />
                 <Route path="groups/:groupId" element={<GroupDetailPage />} />
-                <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
-                <Route path="chats" element={<ChatsPage />} />
                 <Route path="profile" element={<ProfilePage />} />
               </Route>
               

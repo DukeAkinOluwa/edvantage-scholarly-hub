@@ -2,16 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  Calendar, BookOpen, Users, Briefcase, 
-  Brain, Award, Bell, Settings, LogOut,
-  Menu, X, ChevronRight, Home, Download,
-  Sun, Moon, User, MessageCircle
+  Calendar, BookOpen, Briefcase, 
+  Brain, Award, Settings, LogOut,
+  Menu, X, ChevronRight, Home, 
+  User, MessageCircle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { collectUserData, generateUserDataPDF } from '@/utils/pdfExport';
 import { DashboardSidebarLink } from './sidebar/DashboardSidebarLink';
 import { DashboardSidebarAction } from './sidebar/DashboardSidebarAction';
 import { DashboardSidebarMobileToggle } from './sidebar/DashboardSidebarMobileToggle';
@@ -34,13 +33,8 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
-    
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setIsCollapsed(false);
@@ -55,12 +49,10 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
     { title: 'Dashboard', icon: Home, path: '/dashboard' },
     { title: 'Schedule & Tasks', icon: Calendar, path: '/dashboard/calendar' },
     { title: 'Resources', icon: BookOpen, path: '/dashboard/resources' },
-    { title: 'Study Groups', icon: Users, path: '/dashboard/groups' },
+    { title: 'Communication', icon: MessageCircle, path: '/dashboard/communication' },
     { title: 'Projects', icon: Briefcase, path: '/dashboard/projects' },
     { title: 'AI Study Support', icon: Brain, path: '/dashboard/ai-support' },
     { title: 'Achievements', icon: Award, path: '/dashboard/achievements' },
-    { title: 'Chats', icon: MessageCircle, path: '/dashboard/chats' },
-    { title: 'Notifications', icon: Bell, path: '/dashboard/notifications' },
     { title: 'Settings', icon: Settings, path: '/dashboard/settings' },
   ];
 
@@ -84,51 +76,6 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
 
   const toggleMobileSidebar = () => {
     setIsMobileOpen(!isMobileOpen);
-  };
-
-  const toggleDarkMode = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    }
-    setIsDarkMode(!isDarkMode);
-  };
-
-  const downloadUserData = async () => {
-    if (!user || isExporting) return;
-    
-    setIsExporting(true);
-    toast({
-      title: "Data Export",
-      description: "Your data is being prepared for download. This may take a moment.",
-    });
-    
-    try {
-      const userData = await collectUserData(user.id);
-      const pdfUrl = await generateUserDataPDF(userData);
-      
-      toast({
-        title: "Data Ready",
-        description: "Your data has been prepared and is downloading now.",
-      });
-      
-      const link = document.createElement('a');
-      link.href = pdfUrl;
-      link.download = 'user-data-export.pdf';
-      link.click();
-    } catch (error) {
-      toast({
-        title: "Export Failed",
-        description: "There was an error exporting your data. Please try again.",
-        variant: "destructive"
-      });
-      console.error('Data export failed:', error);
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   const viewProfile = () => {
@@ -179,7 +126,7 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
           <DashboardSidebarLink
             key={link.path}
             link={link}
-            isActive={location.pathname === link.path}
+            isActive={location.pathname === link.path || location.pathname.startsWith(`${link.path}/`)}
             isCollapsed={isCollapsed}
             onClick={() => setIsMobileOpen(false)}
           />
@@ -196,23 +143,6 @@ const DashboardSidebar = ({ onToggleCollapse }: DashboardSidebarProps) => {
             className="text-edvantage-blue dark:text-edvantage-light-blue"
           />
         )}
-        
-        <DashboardSidebarAction
-          icon={isDarkMode ? Sun : Moon}
-          label={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-          isCollapsed={isCollapsed}
-          onClick={toggleDarkMode}
-          className={isDarkMode ? "text-yellow-400" : "text-gray-500"}
-        />
-        
-        <DashboardSidebarAction
-          icon={Download}
-          label={isExporting ? 'Exporting...' : 'Export My Data'}
-          isCollapsed={isCollapsed}
-          onClick={downloadUserData}
-          disabled={isExporting}
-          className="text-edvantage-blue dark:text-edvantage-light-blue"
-        />
         
         <DashboardSidebarAction
           icon={LogOut}
